@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:latest
+    container_name: unimart_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: unimart
+      MYSQL_USER: unimartuser
+      MYSQL_PASSWORD: unimartpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+volumes:
+  db_data:
