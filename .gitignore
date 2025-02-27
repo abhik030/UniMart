@@ -3,3 +3,5 @@
 *.class
 .DS_Store
 .env
+datagrip-project/
+database-config.json
