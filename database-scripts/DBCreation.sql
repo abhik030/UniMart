@@ -13,10 +13,11 @@ CREATE TABLE Users (
     FOREIGN KEY (banned_by) REFERENCES AdminUsers(email) ON DELETE SET NULL
 );
 
+
 CREATE INDEX idx_users_university_id ON Users(university_id);
 CREATE INDEX idx_users_username ON Users(username);
 
-CREATE TABLE Universities (
+CREATE TABLE IF NOT EXISTS Universities (
     university_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     domain VARCHAR(100) UNIQUE NOT NULL  -- Example: "northeastern.edu"

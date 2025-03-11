@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniMart Authentication Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .response {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            min-height: 100px;
+        }
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>UniMart Authentication Test Client</h1>
+    
+    <div class="container">
+        <!-- Supported Universities -->
+        <div class="card">
+            <h2>Get Supported Universities</h2>
+            <button id="getSupportedUniversities">Get Universities</button>
+            <h3>Response:</h3>
+            <pre class="response" id="supportedUniversitiesResponse"></pre>
+        </div>
+        
+        <!-- Email Validation -->
+        <div class="card">
+            <h2>Validate Email</h2>
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" value="test@northeastern.edu">
+            </div>
+            <button id="validateEmail">Validate Email</button>
+            <h3>Response:</h3>
+            <pre class="response" id="validateEmailResponse"></pre>
+        </div>
+        
+        <!-- Verify Code -->
+        <div class="card">
+            <h2>Verify Code</h2>
+            <div class="form-group">
+                <label for="verifyEmail">Email Address:</label>
+                <input type="email" id="verifyEmail" value="test@northeastern.edu">
+            </div>
+            <div class="form-group">
+                <label for="code">Verification Code:</label>
+                <input type="text" id="code" placeholder="Enter the code from console">
+            </div>
+            <button id="verifyCode">Verify Code</button>
+            <h3>Response:</h3>
+            <pre class="response" id="verifyCodeResponse"></pre>
+        </div>
+        
+        <!-- Unsupported University -->
+        <div class="card">
+            <h2>Unsupported University</h2>
+            <div class="form-group">
+                <label for="unsupportedEmail">Email Address:</label>
+                <input type="email" id="unsupportedEmail" value="user@unsupported.edu">
+            </div>
+            <button id="getUnsupported">Get Unsupported Info</button>
+            <h3>Response:</h3>
+            <pre class="response" id="unsupportedResponse"></pre>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8080/api';
+        
+        // Helper function for API calls
+        async function callApi(endpoint, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(`${BASE_URL}${endpoint}`, options);
+                const data = await response.json();
+                return { success: true, data };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // Get Supported Universities
+        document.getElementById('getSupportedUniversities').addEventListener('click', async () => {
+            const responseElement = document.getElementById('supportedUniversitiesResponse');
+            responseElement.textContent = 'Loading...';
+            
+            const result = await callApi('/auth/supported-universities');
+            
+            if (result.success) {
+                responseElement.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                responseElement.textContent = `Error: ${result.error}`;
+                responseElement.classList.add('error');
+            }
+        });
+        
+        // Validate Email
+        document.getElementById('validateEmail').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const responseElement = document.getElementById('validateEmailResponse');
+            responseElement.textContent = 'Loading...';
+            
+            const result = await callApi('/auth/validate-email', 'POST', { email });
+            
+            if (result.success) {
+                responseElement.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                responseElement.textContent = `Error: ${result.error}`;
+                responseElement.classList.add('error');
+            }
+        });
+        
+        // Verify Code
+        document.getElementById('verifyCode').addEventListener('click', async () => {
+            const email = document.getElementById('verifyEmail').value;
+            const code = document.getElementById('code').value;
+            const responseElement = document.getElementById('verifyCodeResponse');
+            responseElement.textContent = 'Loading...';
+            
+            const result = await callApi('/auth/verify-code', 'POST', { email, code });
+            
+            if (result.success) {
+                responseElement.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                responseElement.textContent = `Error: ${result.error}`;
+                responseElement.classList.add('error');
+            }
+        });
+        
+        // Unsupported University
+        document.getElementById('getUnsupported').addEventListener('click', async () => {
+            const email = document.getElementById('unsupportedEmail').value;
+            const responseElement = document.getElementById('unsupportedResponse');
+            responseElement.textContent = 'Loading...';
+            
+            const result = await callApi(`/unsupported?email=${encodeURIComponent(email)}`);
+            
+            if (result.success) {
+                responseElement.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                responseElement.textContent = `Error: ${result.error}`;
+                responseElement.classList.add('error');
+            }
+        });
+    </script>
+</body>
+</html> 

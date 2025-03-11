@@ -1,0 +1,26 @@
+package com.unimart.Authentication.controllers;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.unimart.Authentication.dtos.auth.EmailRequest;
+import com.unimart.Authentication.dtos.auth.SchoolRedirectDTO;
+
+@RestController
+@RequestMapping("/api/auth")
+public class QuickFixAuthController {
+    
+    @PostMapping("/validate-email")
+    public ResponseEntity<SchoolRedirectDTO> validateEmail(@RequestBody EmailRequest request) {
+        // Simple implementation that always returns Northeastern
+        SchoolRedirectDTO response = new SchoolRedirectDTO(
+            "Northeastern University", 
+            "/huskymart",
+            "HuskyMart"
+        );
+        return ResponseEntity.ok(response);
+    }
+}

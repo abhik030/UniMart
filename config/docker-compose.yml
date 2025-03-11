@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:latest
@@ -17,12 +15,16 @@ services:
 
   backend:
     build:
-      context: ../backend   # Change this line to point to the correct path
+      context: ../backend
     container_name: unimart_backend
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
