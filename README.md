@@ -24,22 +24,6 @@ UniMart is a student-exclusive marketplace where only students with verified .ed
 - Docker and Docker Compose
 - MySQL
 
-### Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-
-```
-MYSQL_ROOT_PASSWORD=your_root_password
-MYSQL_DATABASE=unimart
-MYSQL_USER=unimart_user
-MYSQL_PASSWORD=your_password
-
-# Email Configuration
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-```
 
 ### Running the Application
 
@@ -91,3 +75,26 @@ if (!schoolRepository.existsByDomainSuffix("newschool.edu")) {
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+Hello,
+
+This is my project UniMart. A better description will be on Github
+
+But here are some basic facts:
+1. Student exclusive marketplace
+2. Made For Students, By Students
+3. Tech Stack:
+    - Backend:
+        - MySQL
+        - Java Spring
+        - Docker
+    - Front-end
+        - TypeScript
+        - Node.JS
+        - HTML/CSS 
+    - Cloud (AWS Most likely)
+    - Diagram: Lucid Charts
+        - https://lucid.app/lucidchart/be0482db-c922-436e-b261-9007d8736752/edit?page=0_0&invitationId=inv_aa66d6e8-6829-4ee1-ba72-37001e6e493e#
+
+5. First store will be HuskyMart, a Northeastern Marketplace
+
+**Will come back to this**
