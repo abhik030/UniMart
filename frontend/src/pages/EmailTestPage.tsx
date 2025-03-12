@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { emailService } from '../services/emailService';
+import { authService } from '../services/api';
 import Button from '../components/Button';
 
 const Container = styled.div`
@@ -78,20 +78,17 @@ const EmailTestPage: React.FC = () => {
     setStatus(null);
     
     try {
-      // Generate a random 6-digit code
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Send the email
-      await emailService.sendVerificationEmail(email, verificationCode);
+      // Use the backend API to send a verification email
+      const response = await authService.validateEmail(email);
       
       setStatus({ 
-        message: `Verification email sent successfully to ${email} with code: ${verificationCode}`, 
+        message: `Verification email sent successfully to ${email}. ${response.message}`, 
         isError: false 
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending email:', error);
       setStatus({ 
-        message: `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        message: `Failed to send email: ${error.response?.data || (error instanceof Error ? error.message : 'Unknown error')}`, 
         isError: true 
       });
     } finally {
