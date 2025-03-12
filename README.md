@@ -1,13 +1,104 @@
-# UniMart - Student Exclusive Marketplace
+# UniMart - Student Marketplace
 
-UniMart is a student-exclusive marketplace where only students with verified .edu email addresses can buy and sell items. This platform is designed to create safe, school-specific marketplaces for students.
+A marketplace application for university students to buy and sell items within their university community.
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- Java 17 or later
+- Maven
+- MySQL
+- Docker and Docker Compose (optional, for containerized setup)
+
+### Running the Application Locally
+
+#### Backend
+
+1. Navigate to the backend directory:
+   ```
+   cd backend
+   ```
+
+2. Start the Spring Boot application:
+   ```
+   ./mvnw spring-boot:run
+   ```
+   
+   The backend will be available at http://localhost:8081
+
+#### Frontend
+
+1. Navigate to the frontend directory:
+   ```
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Start the React application:
+   ```
+   npm start
+   ```
+   
+   The frontend will be available at http://localhost:3000
+
+### Shutting Down
+
+To shut down the application:
+
+1. Stop the frontend server by pressing `Ctrl+C` in the terminal where it's running
+2. Stop the backend server by pressing `Ctrl+C` in its terminal
+3. If you're using a local MySQL database, you may want to stop that as well
+
+### Running with Docker Compose
+
+If you prefer to use Docker Compose:
+
+1. Build and start all services:
+   ```
+   docker-compose up -d
+   ```
+
+2. To shut down:
+   ```
+   docker-compose down
+   ```
+
+## Environment Variables
+
+The application uses environment variables for configuration. These can be set in:
+
+- `.env` files for local development
+- Docker Compose environment variables
+- System environment variables for production
+
+### Frontend Environment Variables
+
+- `REACT_APP_API_URL`: URL for the backend API
+
+### Backend Environment Variables
+
+- `MYSQL_USER`: MySQL username
+- `MYSQL_PASSWORD`: MySQL password
+- `MAIL_HOST`: SMTP host for email
+- `MAIL_PORT`: SMTP port
+- `MAIL_USERNAME`: Email username
+- `MAIL_PASSWORD`: Email password
+- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed origins for CORS
 
 ## Features
 
-- School email verification (.edu domains only)
-- School-specific marketplaces
-- User authentication and verification
-- Secure buying and selling platform
+- Email verification for university students
+- University-specific marketplaces
+- User profiles
+- Item listings with images
+- Search and filter functionality
+- Messaging between users
 
 *Still developing a lot of these features as we speak. Will update as each feature is pushed*
 

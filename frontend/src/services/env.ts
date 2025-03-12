@@ -1,7 +1,10 @@
-// Mock environment variables for frontend
-// In a real application, these would be loaded from environment variables
+// Environment variables for frontend
+// In production, these would be loaded from environment variables
 
 export const env = {
+  // API configuration
+  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:8081/api',
+  
   // Email configuration (these would be set by the backend in a real application)
   MAIL_HOST: 'smtp.gmail.com',
   MAIL_PORT: 587,

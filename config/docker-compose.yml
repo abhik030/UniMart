@@ -21,14 +21,20 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
       - db
+    restart: always
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: unimart_frontend
+    ports:
+      - "3000:80"  # Maps port 80 in the container to port 3000 on the host
+    depends_on:
+      - backend
     restart: always
 
 volumes:

@@ -1,19 +1,27 @@
-FROM openjdk:23-jdk-slim
+# Build stage
+FROM maven:3.8.5-openjdk-17-slim AS build
 
 WORKDIR /app
 
-COPY mvnw mvnw.cmd pom.xml ./
+# Copy the Maven POM file
+COPY pom.xml .
 
-# Copy the .mvn directory
-COPY .mvn/ .mvn/
+# Copy the source code
+COPY src ./src
 
-COPY src/ src/
+# Build the application
+RUN mvn clean package -DskipTests
 
-RUN chmod +x mvnw
+# Runtime stage
+FROM openjdk:17-slim
 
-RUN ./mvnw package -DskipTests
+WORKDIR /app
 
-EXPOSE 8080
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar
 
-# Update this line with the correct JAR file name
-CMD ["java", "-jar", "target/backend-0.0.1-SNAPSHOT.jar"]
+# Expose the port
+EXPOSE 8081
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -11,9 +11,10 @@ import {
   ProfileSetupResponse
 } from '../types/index';
 import { emailService } from './emailService';
+import { env } from './env';
 
-// Using direct URL to the backend
-const API_URL = 'http://localhost:8081/api';
+// Using API URL from environment variables
+const API_URL = env.API_URL;
 
 const api = axios.create({
   baseURL: API_URL,
