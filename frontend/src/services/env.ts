@@ -3,7 +3,7 @@
 
 export const env = {
   // API configuration
-  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:8081/api',
+  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
   
   // Email configuration (these would be set by the backend in a real application)
   MAIL_HOST: 'smtp.gmail.com',

@@ -547,7 +547,7 @@ const HuskyMartPage: React.FC = () => {
         </MarketSwitcherContainer>
         
         <Footer>
-          <FooterText>© 2023 HuskyMart - A marketplace for Northeastern University students</FooterText>
+          <FooterText>© 2025 HuskyMart - A marketplace for Northeastern University students</FooterText>
         </Footer>
       </Container>
     </ThemeProvider>

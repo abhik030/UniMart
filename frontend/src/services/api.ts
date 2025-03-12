@@ -136,6 +136,34 @@ export const authService = {
       console.error("Error getting supported universities:", error);
       throw error;
     }
+  },
+  
+  checkRememberMeToken: (email: string): boolean => {
+    try {
+      const tokenExpiry = localStorage.getItem('tokenExpiry');
+      if (!tokenExpiry) return false;
+      
+      const expiryTime = parseInt(tokenExpiry, 10);
+      const currentTime = Date.now();
+      
+      // Check if the token has expired
+      if (currentTime > expiryTime) {
+        console.log('Remember me token has expired');
+        return false;
+      }
+      
+      // Check if the stored email matches the provided email
+      const storedEmail = localStorage.getItem('email');
+      if (storedEmail !== email) {
+        console.log('Email mismatch in remember me token');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking remember me token:', error);
+      return false;
+    }
   }
 };
 

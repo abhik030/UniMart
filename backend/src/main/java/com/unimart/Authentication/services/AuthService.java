@@ -72,7 +72,7 @@ public class AuthService {
             "Welcome to UniMart!\n\n" +
             "Your verification code is: %s\n\n" +
             "This code will expire in 10 minutes.\n\n" +
-            "Thank you for joining the %s UniMart community!",
+            "Thank you for joining the %s's UniMart community!",
             code, university.getName()
         );
         

@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.8.5-openjdk-17-slim AS build
+FROM maven:latest AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM openjdk:17-slim
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose the port
-EXPOSE 8081
+EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application with Docker profile
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=docker", "app.jar"]
