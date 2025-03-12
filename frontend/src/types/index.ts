@@ -7,9 +7,9 @@ export interface VerifyRequest {
   code: string;
 }
 
-export interface SchoolRedirectDTO {
+export interface EmailValidationResponse {
+  universityName: string;
   isSupported: boolean;
-  universityName?: string;
   message: string;
 }
 
@@ -19,11 +19,36 @@ export interface UserResponseDTO {
   username: string;
   universityName: string;
   token: string;
+  isFirstLogin?: boolean;
+}
+
+export interface ProfileSetupRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  description?: string;
+  profilePicture?: File | null;
+}
+
+export interface ProfileSetupResponse {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  description: string | null;
+  profilePictureUrl: string | null;
+  universityName: string;
+  token: string;
 }
 
 export interface SupportedUniversityDTO {
   id: number;
   name: string;
   domain: string;
-  logoUrl?: string;
+  logoUrl: string | null;
+}
+
+export interface SchoolRedirectDTO {
+  redirectUrl: string;
 } 

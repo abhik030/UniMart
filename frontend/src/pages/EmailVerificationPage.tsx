@@ -6,6 +6,7 @@ import Logo from '../components/Logo';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { authService } from '../services/api';
+import { EmailValidationResponse } from '../types';
 
 const Container = styled.div`
   display: flex;
@@ -62,7 +63,7 @@ const EmailVerificationPage: React.FC = () => {
       return;
     }
     
-    if (!email.endsWith('.edu')) {
+    if (!email.includes('@') || !email.endsWith('.edu')) {
       setError('Please enter a valid .edu email address');
       return;
     }
@@ -72,19 +73,23 @@ const EmailVerificationPage: React.FC = () => {
     
     try {
       const response = await authService.validateEmail(email);
+      console.log('Email validation response:', response);
+      
       // Store email in session storage for verification page
       sessionStorage.setItem('email', email);
       sessionStorage.setItem('universityName', response.universityName || '');
       
+      // If we get here, the email is valid and supported
       navigate('/verify');
     } catch (err: any) {
+      console.error('Email validation error:', err);
+      
       if (err.response && err.response.status === 400) {
         // If the school is not supported
         sessionStorage.setItem('email', email);
         navigate('/unsupported');
       } else {
         setError('An error occurred. Please try again.');
-        console.error(err);
       }
     } finally {
       setLoading(false);

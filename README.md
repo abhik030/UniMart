@@ -9,20 +9,35 @@ UniMart is a student-exclusive marketplace where only students with verified .ed
 - User authentication and verification
 - Secure buying and selling platform
 
-## Project Structure
+*Still developing a lot of these features as we speak. Will update as each feature is pushed*
 
-- `backend/`: Spring Boot backend API
-- `frontend/`: (Coming soon) React/Next.js frontend application
-- `database-scripts/`: Database initialization scripts
 
-## Getting Started
+## License
 
-### Prerequisites
+This project is licensed under the MIT License - see the LICENSE file for details.
+Hello,
 
-- Java 21
-- Maven
-- Docker and Docker Compose
-- MySQL
+This is my project UniMart. A better description will be on Github
+
+But here are some basic facts:
+1. Student exclusive marketplace
+2. Made For Students, By Students
+3. Tech Stack:
+    - Backend:
+        - MySQL
+        - Java Spring
+        - Docker
+    - Front-end
+        - TypeScript
+        - Node.JS
+        - HTML/CSS 
+    - Cloud (AWS Most likely)
+    - Diagram: Lucid Charts
+        - https://lucid.app/lucidchart/be0482db-c922-436e-b261-9007d8736752/edit?page=0_0&invitationId=inv_aa66d6e8-6829-4ee1-ba72-37001e6e493e#
+
+5. First store will be HuskyMart, a Northeastern Marketplace
+
+
 
 
 ### Running the Application
@@ -71,30 +86,5 @@ if (!schoolRepository.existsByDomainSuffix("newschool.edu")) {
     schoolRepository.save(newSchool);
 }
 ```
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-Hello,
-
-This is my project UniMart. A better description will be on Github
-
-But here are some basic facts:
-1. Student exclusive marketplace
-2. Made For Students, By Students
-3. Tech Stack:
-    - Backend:
-        - MySQL
-        - Java Spring
-        - Docker
-    - Front-end
-        - TypeScript
-        - Node.JS
-        - HTML/CSS 
-    - Cloud (AWS Most likely)
-    - Diagram: Lucid Charts
-        - https://lucid.app/lucidchart/be0482db-c922-436e-b261-9007d8736752/edit?page=0_0&invitationId=inv_aa66d6e8-6829-4ee1-ba72-37001e6e493e#
-
-5. First store will be HuskyMart, a Northeastern Marketplace
 
 **Will come back to this**

@@ -12,7 +12,7 @@ const GlobalStyle = createGlobalStyle`
       Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #121212;
+    background-color: ${props => props.theme.colors.background};
     color: #FFFFFF;
     line-height: 1.5;
   }

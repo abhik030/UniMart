@@ -9,6 +9,7 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
   disabled?: boolean;
   fullWidth?: boolean;
+  style?: React.CSSProperties;
 }
 
 const StyledButton = styled(motion.button)<{
@@ -30,11 +31,11 @@ const StyledButton = styled(motion.button)<{
     switch(props.variant) {
       case 'primary':
         return `
-          background-color: #00BFA6;
+          background-color: ${props.theme.colors.primary};
           color: white;
           border: none;
           &:hover {
-            background-color: #00A896;
+            background-color: ${props.theme.colors.secondary};
           }
           &:disabled {
             background-color: #4D4D4D;
@@ -43,11 +44,11 @@ const StyledButton = styled(motion.button)<{
         `;
       case 'secondary':
         return `
-          background-color: #1E1E1E;
+          background-color: ${props.theme.colors.background};
           color: white;
-          border: 2px solid #00BFA6;
+          border: 2px solid ${props.theme.colors.primary};
           &:hover {
-            background-color: rgba(0, 191, 166, 0.1);
+            background-color: ${props.theme.colors.primaryLight};
           }
           &:disabled {
             border-color: #4D4D4D;
@@ -58,10 +59,10 @@ const StyledButton = styled(motion.button)<{
       case 'outline':
         return `
           background-color: transparent;
-          color: #00BFA6;
-          border: 2px solid #00BFA6;
+          color: ${props.theme.colors.primary};
+          border: 2px solid ${props.theme.colors.primary};
           &:hover {
-            background-color: rgba(0, 191, 166, 0.1);
+            background-color: ${props.theme.colors.primaryLight};
           }
           &:disabled {
             color: #4D4D4D;
@@ -82,6 +83,7 @@ const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   disabled = false,
   fullWidth = false,
+  style,
 }) => {
   return (
     <StyledButton
@@ -90,6 +92,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       variant={variant}
       fullWidth={fullWidth}
+      style={style}
       whileHover={!disabled ? { scale: 1.03 } : {}}
       whileTap={!disabled ? { scale: 0.97 } : {}}
     >
