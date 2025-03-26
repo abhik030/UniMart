@@ -6,6 +6,7 @@ import Logo from '../components/Logo';
 import Button from '../components/Button';
 import PinInput from '../components/PinInput';
 import { authService } from '../services/api';
+import { env } from '../services/env';
 
 const Container = styled.div`
   display: flex;
@@ -110,6 +111,17 @@ const ResendTimer = styled.span`
   color: ${props => props.theme.colors.lightText};
 `;
 
+const DebugMessage = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875rem;
+  text-align: left;
+  color: #333;
+`;
+
 interface MessageContainerProps {
   messageType: 'success' | 'error';
 }
@@ -137,17 +149,12 @@ const VerificationPage: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    console.log('[VerificationPage] Component mounted');
     // Get email from session storage
     const storedEmail = sessionStorage.getItem('email');
     const storedUniversityName = sessionStorage.getItem('universityName');
     
-    console.log('[VerificationPage] Email from session storage:', storedEmail);
-    console.log('[VerificationPage] University from session storage:', storedUniversityName);
-    
     if (!storedEmail) {
       // Redirect to home if no email is found
-      console.error('[VerificationPage] No email found in session storage, redirecting to home');
       navigate('/');
       return;
     }
@@ -184,26 +191,50 @@ const VerificationPage: React.FC = () => {
     setLoading(true);
     
     try {
+      // Call the backend API to verify the code
       const response = await authService.verifyCode(email, code, rememberMe);
-      console.log('Verification response:', response);
       
       // Store user data
       sessionStorage.setItem('email', email);
       sessionStorage.setItem('username', response.username || '');
       sessionStorage.setItem('token', response.token);
       
-      // If remember me is checked, we'll store this in localStorage as well
+      // If remember me is checked, store in localStorage as well
       if (rememberMe) {
         localStorage.setItem('email', email);
         localStorage.setItem('token', response.token);
-        console.log('Remember me enabled - credentials stored for 30 days');
       }
       
-      // Always redirect to profile setup page
-      navigate('/profile-setup');
-    } catch (err: any) {
-      console.error('Verification error:', err);
+      console.log("Verification response:", response);
       
+      // Extract domain from email to check if it's directly supported
+      const domain = email.split('@')[1];
+      const isDirectlySupported = domain === 'northeastern.edu';
+      sessionStorage.setItem('isDirectlySupported', String(isDirectlySupported));
+      
+      // For new users with unsupported schools, store a flag to indicate we need to go to profile setup after university selection
+      if (response.isFirstLogin && !isDirectlySupported) {
+        console.log("First-time login with unsupported school - storing flag for profile setup");
+        sessionStorage.setItem('needsProfileSetup', 'true');
+        navigate('/unsupported');
+      } 
+      // For new users with supported schools, go directly to profile setup
+      else if (response.isFirstLogin && isDirectlySupported) {
+        console.log("First-time login with supported school - redirecting to profile setup");
+        navigate('/profile-setup');
+      }
+      // For returning users with unsupported school
+      else if (!isDirectlySupported) {
+        console.log("Returning user with unsupported school - redirecting to unsupported page");
+        navigate('/unsupported');
+      } 
+      // For returning users with directly supported school
+      else {
+        console.log("Returning user with supported school - redirecting to marketplace");
+        navigate('/huskymart');
+      }
+    } catch (err: any) {
+      console.error("Verification error:", err);
       if (err.response && err.response.data) {
         setError(err.response.data);
       } else {

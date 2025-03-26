@@ -240,15 +240,20 @@ const ProfileSetupPage: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
     setLoading(true);
     
     try {
-      console.log('Submitting profile data for email:', email);
+      // Validate form data
+      if (!validateForm()) {
+        throw new Error('Form validation failed');
+      }
+      
+      // Get email from session storage
+      const email = sessionStorage.getItem('email');
+      
+      if (!email) {
+        throw new Error('Email not found. Please try logging in again');
+      }
       
       const profileData: ProfileSetupRequest = {
         firstName,
@@ -263,7 +268,7 @@ const ProfileSetupPage: React.FC = () => {
       const response = await authService.setupProfile(profileData, email);
       console.log('Profile setup response:', response);
       
-      // Store user data
+      // Store user profile info in session storage
       sessionStorage.setItem('firstName', response.firstName);
       sessionStorage.setItem('lastName', response.lastName);
       sessionStorage.setItem('token', response.token);
@@ -271,14 +276,15 @@ const ProfileSetupPage: React.FC = () => {
         sessionStorage.setItem('profilePictureUrl', response.profilePictureUrl);
       }
       
-      // Redirect to the huskymart
+      // After completing profile setup, go directly to the marketplace
+      console.log("Profile setup complete - redirecting to marketplace");
       navigate('/huskymart');
-    } catch (err: any) {
-      console.error('Profile setup error:', err);
+    } catch (error: any) {
+      console.error('Profile setup error:', error);
       let errorMessage = 'An error occurred while setting up your profile. Please try again.';
       
-      if (err.message) {
-        errorMessage = err.message;
+      if (error.message) {
+        errorMessage = error.message;
       }
       
       setErrors({

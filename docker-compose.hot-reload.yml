@@ -4,7 +4,7 @@ services:
   # MySQL Database
   mysql:
     image: mysql:8.0
-    container_name: unimart-mysql
+    container_name: unimart-mysql-dev
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
@@ -16,19 +16,19 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
-      - unimart-network
+      - unimart-network-dev
 
-  # Backend Spring Boot Application
+  # Backend Spring Boot Application with hot reloading
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    image: unimart-backend
-    container_name: unimart-backend
+      dockerfile: Dockerfile.dev
+    container_name: unimart-backend-dev
     restart: always
     depends_on:
       - mysql
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/unimart
       MYSQL_USER: ${MYSQL_USER:-unimartuser}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-unimartpassword}
@@ -39,30 +39,40 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       CORS_ALLOWED_ORIGINS: http://localhost:3000
     ports:
-      - "8081:8080"
+      - "8081:8081"
+      - "5005:5005"  # Debug port
     volumes:
-      - ./backend:/app/src
+      - ./backend:/app
+      - ~/.m2:/root/.m2
     networks:
-      - unimart-network
+      - unimart-network-dev
 
-  # Frontend React Application
+  # Frontend React Application with hot reloading
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: unimart-frontend
+      dockerfile: Dockerfile.dev
+    container_name: unimart-frontend-dev
+    stdin_open: true
+    tty: true
     restart: always
     depends_on:
       - backend
     environment:
       - REACT_APP_API_URL=http://localhost:8081/api
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "3000:80"
+      - "3000:3000"
     networks:
-      - unimart-network
+      - unimart-network-dev
 
 networks:
-  unimart-network:
+  unimart-network-dev:
     driver: bridge
 
 volumes:

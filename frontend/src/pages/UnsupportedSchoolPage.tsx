@@ -123,35 +123,31 @@ const UnsupportedSchoolPage: React.FC = () => {
   }, [navigate]);
 
   const handleUniversityClick = async (university: SupportedUniversityDTO) => {
-    // Store university info in session storage
-    sessionStorage.setItem('universityName', university.name);
-    
-    // Get email from session storage
-    const storedEmail = sessionStorage.getItem('email');
-    console.log("[UnsupportedSchoolPage] Clicking university:", university.name);
-    console.log("[UnsupportedSchoolPage] Email from session storage:", storedEmail);
-    
-    if (!storedEmail) {
-      console.error("[UnsupportedSchoolPage] No email found in session storage");
-      alert("No email found. Please start from the home page.");
-      navigate('/');
-      return;
-    }
-    
     try {
-      console.log("[UnsupportedSchoolPage] Sending validation email for:", storedEmail);
-      // Send validation email for the selected university
-      const response = await authService.validateEmail(storedEmail);
-      console.log("[UnsupportedSchoolPage] Validation successful:", response);
+      // Store university info in session storage
+      sessionStorage.setItem('universityName', university.name);
       
-      // Check browser console for debugging
-      alert("Check your browser console (F12) for debugging info");
+      // Store the marketplace URL for redirection
+      const marketplaceUrl = '/huskymart'; // For now, all universities redirect to HuskyMart
+      sessionStorage.setItem('marketplaceUrl', marketplaceUrl);
       
-      // Navigate to verification page
-      navigate('/verify');
+      // Check if the user needs to complete profile setup (for new users)
+      const needsProfileSetup = sessionStorage.getItem('needsProfileSetup') === 'true';
+      
+      if (needsProfileSetup) {
+        // New users need to go to profile setup after selecting a university
+        console.log("New user - redirecting to profile setup");
+        // Remove the flag since we're handling it now
+        sessionStorage.removeItem('needsProfileSetup');
+        navigate('/profile-setup');
+      } else {
+        // Existing users go directly to the marketplace
+        console.log("Existing user - redirecting to marketplace");
+        navigate(marketplaceUrl);
+      }
     } catch (error) {
-      console.error("[UnsupportedSchoolPage] Error in handleUniversityClick:", error);
-      alert("Failed to send verification code. Please try again or check console for details.");
+      console.error("Error:", error);
+      alert("An error occurred. Please try again.");
     }
   };
   
@@ -170,27 +166,33 @@ const UnsupportedSchoolPage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Title>School Not Supported</Title>
+        <Title>Select a Marketplace</Title>
         <Subtitle>
-          We're sorry, but your school is not currently supported. 
-          Please choose from one of our supported universities below:
+          Thanks for verifying your email! Since your school {email ? `(${email})` : ''} doesn't have 
+          its own marketplace yet, please select which marketplace you'd like to use below.
         </Subtitle>
         
         {loading ? (
           <LoadingText>Loading supported universities...</LoadingText>
         ) : (
           <UniversitiesList>
-            {universities.map((university) => (
-              <UniversityCard 
-                key={university.id}
-                onClick={() => handleUniversityClick(university)}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <UniversityName>{university.name}</UniversityName>
-                <MarketplaceName>{university.domain}</MarketplaceName>
-              </UniversityCard>
-            ))}
+            {universities.map((university) => {
+              // Custom display for Northeastern University
+              const displayName = university.name === "Northeastern University" ? "HuskyMart" : university.name;
+              const subtext = university.name === "Northeastern University" ? "Northeastern University" : university.domain;
+              
+              return (
+                <UniversityCard 
+                  key={university.id}
+                  onClick={() => handleUniversityClick(university)}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <UniversityName>{displayName}</UniversityName>
+                  <MarketplaceName>{subtext}</MarketplaceName>
+                </UniversityCard>
+              );
+            })}
           </UniversitiesList>
         )}
         

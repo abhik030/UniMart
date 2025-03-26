@@ -36,17 +36,21 @@ public class AuthController {
      */
     @PostMapping("/validate-email")
     public ResponseEntity<?> validateEmail(@RequestBody EmailRequest request) {
+        String email = request.getEmail();
+        log.info("Email validation request received for: {}", email);
+        
         try {
-            SchoolRedirectDTO schoolInfo = authService.validateEmail(request.getEmail());
+            SchoolRedirectDTO schoolInfo = authService.validateEmail(email);
+            log.info("Email validation successful for: {}. University: {}", email, schoolInfo.getUniversityName());
             return ResponseEntity.ok(schoolInfo);
         } catch (InvalidEmailException e) {
-            log.warn("Invalid email attempt: {}", request.getEmail());
+            log.warn("Invalid email attempt: {}", email);
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (SchoolNotFoundException e) {
-            log.info("School not supported: {}", request.getEmail());
+            log.info("School not supported: {}", email);
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            log.error("Error validating email: {}", request.getEmail(), e);
+            log.error("Error validating email: {}", email, e);
             return ResponseEntity.internalServerError().body("An error occurred while processing your request.");
         }
     }
@@ -56,14 +60,19 @@ public class AuthController {
      */
     @PostMapping("/verify-code")
     public ResponseEntity<?> verifyCode(@RequestBody VerifyRequest request) {
+        String email = request.getEmail();
+        String code = request.getCode();
+        log.info("Code verification request received for email: {}", email);
+        
         try {
-            UserResponseDTO user = authService.verifyCode(request.getEmail(), request.getCode());
+            UserResponseDTO user = authService.verifyCode(email, code);
+            log.info("Code verification successful for: {}. Username: {}", email, user.getUsername());
             return ResponseEntity.ok(user);
         } catch (InvalidVerificationCodeException e) {
-            log.warn("Invalid verification code for email: {}", request.getEmail());
+            log.warn("Invalid verification code for email: {}", email);
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            log.error("Error verifying code for email: {}", request.getEmail(), e);
+            log.error("Error verifying code for email: {}", email, e);
             return ResponseEntity.internalServerError().body("An error occurred while processing your request.");
         }
     }

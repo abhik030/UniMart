@@ -52,9 +52,15 @@ public class AuthService {
         // Extract domain from email (e.g., northeastern.edu from user@northeastern.edu)
         String domain = email.substring(email.indexOf('@') + 1);
         
-        // Check if the university is supported
+        // Try to find the university, but don't throw an exception if not found
         University university = universityRepository.findByDomain(domain)
-                .orElseThrow(() -> new SchoolNotFoundException("Your school is not yet supported by UniMart."));
+                .orElseGet(() -> {
+                    // If the university isn't in our database, use a default university (Northeastern)
+                    // This is a temporary solution to allow any .edu email for testing
+                    log.info("School not directly supported: {}. Using default university.", domain);
+                    return universityRepository.findByDomain("northeastern.edu")
+                            .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+                });
         
         // Generate and send verification code
         String code = generateCode();
@@ -67,15 +73,30 @@ public class AuthService {
         // Save new verification code
         verificationCodeRepository.save(new VerificationCode(email, code, expirationTime));
         
-        // Send email with verification code
-        String emailBody = String.format(
-            "Welcome to UniMart!\n\n" +
-            "Your verification code is: %s\n\n" +
-            "This code will expire in 10 minutes.\n\n" +
-            "Thank you for joining the %s's UniMart community!",
-            code, university.getName()
-        );
+        // Create a customized email body based on whether this is a directly supported school
+        String emailBody;
+        if (domain.equals(university.getDomain())) {
+            // This is a directly supported school
+            emailBody = String.format(
+                "Welcome to UniMart!\n\n" +
+                "Your verification code is: %s\n\n" +
+                "This code will expire in 10 minutes.\n\n" +
+                "Thank you for joining the %s's UniMart community!",
+                code, university.getName()
+            );
+        } else {
+            // This is not a directly supported school
+            emailBody = String.format(
+                "Welcome to UniMart!\n\n" +
+                "Your verification code is: %s\n\n" +
+                "This code will expire in 10 minutes.\n\n" +
+                "Thank you for joining the UniMart community! While your school (%s) " +
+                "is not yet directly supported, you can still use our platform through the HuskyMart marketplace.",
+                code, domain
+            );
+        }
         
+        // Send the email
         emailService.sendEmail(email, "UniMart Verification Code", emailBody);
         
         // Return university information for the frontend
@@ -92,6 +113,55 @@ public class AuthService {
      */
     @Transactional
     public UserResponseDTO verifyCode(String email, String code) {
+        // Special case for testing - dummy code 123456
+        if ("123456".equals(code)) {
+            log.info("Using dummy verification code 123456 for email: {}", email);
+            // Extract domain
+            String domain = email.substring(email.indexOf('@') + 1);
+            
+            // Try to find the university, but don't throw an exception if not found
+            University university = universityRepository.findByDomain(domain)
+                    .orElseGet(() -> {
+                        // If the university isn't in our database, use a default university (Northeastern)
+                        log.info("School not directly supported in verification: {}. Using default university.", domain);
+                        return universityRepository.findByDomain("northeastern.edu")
+                                .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+                    });
+            
+            // Check if this is a first-time verification
+            boolean isNewUser = !userRepository.findByEmail(email).isPresent();
+            
+            // Create or update user
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        String username = generateUsername(email);
+                        // Ensure username is unique
+                        while (userRepository.existsByUsername(username)) {
+                            username = generateUsername(email) + new Random().nextInt(1000);
+                        }
+                        return new User(email, username, university);
+                    });
+            
+            // Mark user as verified
+            user.setVerified(true);
+            user = userRepository.save(user);
+            
+            // Generate a simple token (in a real app, this would be a JWT)
+            String token = generateToken(user);
+            
+            // Setting redirect based on whether school is supported
+            boolean isSchoolSupported = domain.equals("northeastern.edu");
+            String redirectUrl = isSchoolSupported ? "/huskymart" : "/unsupported";
+            
+            // Return user information with redirect URL and isFirstLogin flag
+            UserResponseDTO dto = new UserResponseDTO(email, user.getUsername(), university.getName());
+            dto.setRedirectUrl(redirectUrl);
+            dto.setIsFirstLogin(isNewUser);
+            dto.setToken(token);
+            return dto;
+        }
+
+        // Normal verification code flow
         // Find the verification code
         VerificationCode storedCode = verificationCodeRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidVerificationCodeException("No verification code found for this email."));
@@ -109,10 +179,20 @@ public class AuthService {
             throw new InvalidVerificationCodeException("Verification code has expired.");
         }
         
-        // Extract domain and find university
+        // Extract domain
         String domain = email.substring(email.indexOf('@') + 1);
+        
+        // Try to find the university, but don't throw an exception if not found
         University university = universityRepository.findByDomain(domain)
-                .orElseThrow(() -> new SchoolNotFoundException("School not found."));
+                .orElseGet(() -> {
+                    // If the university isn't in our database, use a default university (Northeastern)
+                    log.info("School not directly supported in verification: {}. Using default university.", domain);
+                    return universityRepository.findByDomain("northeastern.edu")
+                            .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+                });
+        
+        // Check if this is a first-time verification
+        boolean isNewUser = !userRepository.findByEmail(email).isPresent();
         
         // Create or update user
         User user = userRepository.findByEmail(email)
@@ -133,12 +213,26 @@ public class AuthService {
         storedCode.setUsed(true);
         verificationCodeRepository.save(storedCode);
         
-        // Generate the redirect URL based on the university
-        String redirectUrl = generateRedirectUrl(university);
+        // Setting redirect based on whether school is supported and if it's a new user
+        boolean isSchoolSupported = domain.equals("northeastern.edu");
+        String redirectUrl;
         
-        // Return user information with redirect URL
+        if (isNewUser) {
+            // For new users, flow is: verify -> unsupported (if not supported) -> profile
+            redirectUrl = isSchoolSupported ? "/huskymart" : "/unsupported";
+        } else {
+            // For existing users, go to their selected university or unsupported page
+            redirectUrl = isSchoolSupported ? "/huskymart" : "/unsupported";
+        }
+        
+        // Generate a simple token (in a real app, this would be a JWT)
+        String token = generateToken(user);
+        
+        // Return user information with redirect URL and isFirstLogin flag
         UserResponseDTO dto = new UserResponseDTO(email, user.getUsername(), university.getName());
         dto.setRedirectUrl(redirectUrl);
+        dto.setIsFirstLogin(isNewUser);
+        dto.setToken(token);
         return dto;
     }
     
@@ -220,5 +314,12 @@ public class AuthService {
         
         // For other universities, use a standardized format
         return university.getName() + " Marketplace";
+    }
+
+    /**
+     * Generate a simple token for the user (placeholder for JWT implementation)
+     */
+    private String generateToken(User user) {
+        return "token-" + user.getEmail() + "-" + System.currentTimeMillis();
     }
 }

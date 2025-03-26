@@ -12,6 +12,8 @@ public class UserResponseDTO {
     private String username;
     private String university;
     private String redirectUrl;
+    private Boolean isFirstLogin;
+    private String token;
     
     // Constructor without redirectUrl for backward compatibility
     public UserResponseDTO(String email, String username, String university) {
@@ -51,6 +53,22 @@ public class UserResponseDTO {
     
     public void setRedirectUrl(String redirectUrl) {
         this.redirectUrl = redirectUrl;
+    }
+    
+    public Boolean getIsFirstLogin() {
+        return isFirstLogin;
+    }
+    
+    public void setIsFirstLogin(Boolean isFirstLogin) {
+        this.isFirstLogin = isFirstLogin;
+    }
+    
+    public String getToken() {
+        return token;
+    }
+    
+    public void setToken(String token) {
+        this.token = token;
     }
 }
 

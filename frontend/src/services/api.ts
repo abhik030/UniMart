@@ -22,27 +22,37 @@ const api = axios.create({
 export const authService = {
   validateEmail: async (email: string): Promise<EmailValidationResponse> => {
     try {
-      console.log('Calling validateEmail API with email:', email);
-      console.log('API URL being used:', API_URL);
-      console.log('Full API endpoint:', `${API_URL}/auth/validate-email`);
-      
+      // Call the validation API
       const response = await api.post('/auth/validate-email', { email });
-      console.log('Backend validateEmail response status:', response.status);
-      console.log('Backend validateEmail response data:', response.data);
       
       // Store the email in session storage
       sessionStorage.setItem('email', email);
       
+      // Store the selected university name and marketplace URL for redirection
+      if (response.data.universityName) {
+        sessionStorage.setItem('universityName', response.data.universityName);
+      }
+      if (response.data.marketplaceUrl) {
+        sessionStorage.setItem('marketplaceUrl', response.data.marketplaceUrl);
+      }
+
+      // Extract domain from email to check if it's directly supported
+      const domain = email.split('@')[1];
+      
+      // A school is directly supported if the email domain matches one of our supported universities
+      // For now, we only have northeastern.edu as directly supported
+      const isDirectlySupported = domain === 'northeastern.edu';
+      
+      // Store whether the school is directly supported
+      sessionStorage.setItem('isDirectlySupported', String(isDirectlySupported));
+      
+      // The backend returns a SchoolRedirectDTO with universityName, marketplaceUrl, and marketplaceName
       return {
         universityName: response.data.universityName || '',
         isSupported: true,
         message: "Verification code sent to your email address."
       };
     } catch (error: any) {
-      console.error("Error validating email:", error);
-      console.error("Error response data:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      
       // If the error is a 400 (Bad Request), it might be because the school is not supported
       if (error.response && error.response.status === 400) {
         // Store the email in session storage anyway for the unsupported school page
@@ -55,8 +65,8 @@ export const authService = {
   
   verifyCode: async (email: string, code: string, rememberMe: boolean = false): Promise<UserResponseDTO> => {
     try {
+      // Call the backend API to verify the code
       const response = await api.post('/auth/verify-code', { email, code });
-      console.log('Verification response:', response.data);
       
       // If remember me is checked, store a token that expires in 30 days
       if (rememberMe) {
@@ -64,18 +74,11 @@ export const authService = {
         localStorage.setItem('email', email);
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('tokenExpiry', expiryDate.toString());
-        console.log(`Remember me token set for ${email}, expires in 30 days`);
       }
       
-      // Always treat as a first-time login since we're not storing user data
-      const responseData = {
-        ...response.data,
-        isFirstLogin: true
-      };
-      
-      return responseData;
+      // Return the response data
+      return response.data;
     } catch (error: any) {
-      console.error("Error verifying code:", error);
       throw error;
     }
   },
@@ -83,7 +86,6 @@ export const authService = {
   resendCode: async (email: string): Promise<EmailValidationResponse> => {
     try {
       const response = await api.post('/auth/validate-email', { email });
-      console.log('Resend code response:', response.data);
       
       return {
         universityName: response.data.universityName || '',
@@ -91,7 +93,6 @@ export const authService = {
         message: "Verification code resent to your email address."
       };
     } catch (error: any) {
-      console.error("Error resending code:", error);
       throw error;
     }
   },

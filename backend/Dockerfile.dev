@@ -1,0 +1,18 @@
+FROM maven:3.9-eclipse-temurin-21
+
+WORKDIR /app
+
+# Copy Maven configuration
+COPY pom.xml .
+
+# Copy source code
+COPY src ./src
+
+# Expose port
+EXPOSE 8081
+
+# Set Spring profiles to dev for hot reloading
+ENV SPRING_PROFILES_ACTIVE=dev
+
+# Run Spring Boot with development profile and DevTools
+CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.profiles=dev", "-Dspring-boot.run.jvmArguments='-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005'"] 

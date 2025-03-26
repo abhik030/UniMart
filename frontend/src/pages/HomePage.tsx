@@ -71,20 +71,23 @@ const HomePage: React.FC = () => {
     setLoading(true);
     
     try {
+      // Always attempt to validate email and send verification code
       const response = await authService.validateEmail(email);
+      
       // Store email in session storage for verification page
       sessionStorage.setItem('email', email);
-      sessionStorage.setItem('universityName', response.universityName);
       
+      if (response.universityName) {
+        sessionStorage.setItem('universityName', response.universityName);
+      }
+      
+      // Always proceed to verification page, regardless of school support status
       navigate('/verify');
     } catch (err: any) {
-      if (err.response && err.response.status === 400) {
-        // If the school is not supported
-        sessionStorage.setItem('email', email);
-        navigate('/unsupported');
+      if (err.response && err.response.status === 500) {
+        setError('Server error. Please try again later.');
       } else {
-        setError('An error occurred. Please try again.');
-        console.error(err);
+        setError('Unable to send verification code. Please check your email and try again.');
       }
     } finally {
       setLoading(false);

@@ -19,7 +19,9 @@ export interface UserResponseDTO {
   username: string;
   universityName: string;
   token: string;
+  university?: string;
   isFirstLogin?: boolean;
+  redirectUrl?: string;
 }
 
 export interface ProfileSetupRequest {
