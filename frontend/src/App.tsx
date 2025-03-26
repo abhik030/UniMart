@@ -8,6 +8,8 @@ import UnsupportedSchoolPage from './pages/UnsupportedSchoolPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import HuskyMartPage from './pages/HuskyMartPage';
 import EmailTestPage from './pages/EmailTestPage';
+import ListYourItemPage from './pages/ListYourItemPage';
+import MessagesPage from './pages/MessagesPage';
 import GlobalStyle from './styles/GlobalStyle';
 import theme from './theme';
 import { authService } from './services/api';
@@ -79,7 +81,31 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/northeastern" 
+              element={
+                <ProtectedRoute>
+                  <HuskyMartPage />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/marketplace" element={<Navigate to="/huskymart" replace />} />
+            <Route 
+              path="/list-item" 
+              element={
+                <ProtectedRoute>
+                  <ListYourItemPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/messages" 
+              element={
+                <ProtectedRoute>
+                  <MessagesPage />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppContainer>

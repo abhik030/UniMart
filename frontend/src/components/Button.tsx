@@ -6,15 +6,17 @@ interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'text';
   disabled?: boolean;
   fullWidth?: boolean;
   style?: React.CSSProperties;
+  color?: 'primary' | 'secondary' | 'light';
 }
 
 const StyledButton = styled(motion.button)<{
   variant: string;
   fullWidth: boolean;
+  color?: string;
 }>`
   display: inline-flex;
   align-items: center;
@@ -28,10 +30,14 @@ const StyledButton = styled(motion.button)<{
   width: ${props => props.fullWidth ? '100%' : 'auto'};
   
   ${props => {
+    const buttonColor = props.color === 'light' ? 'white' : 
+                         props.color === 'secondary' ? props.theme.colors.secondary : 
+                         props.theme.colors.primary;
+                         
     switch(props.variant) {
       case 'primary':
         return `
-          background-color: ${props.theme.colors.primary};
+          background-color: ${buttonColor};
           color: white;
           border: none;
           &:hover {
@@ -46,7 +52,7 @@ const StyledButton = styled(motion.button)<{
         return `
           background-color: ${props.theme.colors.background};
           color: white;
-          border: 2px solid ${props.theme.colors.primary};
+          border: 2px solid ${buttonColor};
           &:hover {
             background-color: ${props.theme.colors.primaryLight};
           }
@@ -59,14 +65,28 @@ const StyledButton = styled(motion.button)<{
       case 'outline':
         return `
           background-color: transparent;
-          color: ${props.theme.colors.primary};
-          border: 2px solid ${props.theme.colors.primary};
+          color: ${buttonColor};
+          border: 2px solid ${buttonColor};
           &:hover {
             background-color: ${props.theme.colors.primaryLight};
           }
           &:disabled {
             color: #4D4D4D;
             border-color: #4D4D4D;
+            cursor: not-allowed;
+          }
+        `;
+      case 'text':
+        return `
+          background-color: transparent;
+          color: ${buttonColor};
+          border: none;
+          padding: 0.5rem;
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
+          &:disabled {
+            color: #4D4D4D;
             cursor: not-allowed;
           }
         `;
@@ -81,6 +101,7 @@ const Button: React.FC<ButtonProps> = ({
   onClick,
   type = 'button',
   variant = 'primary',
+  color = 'primary',
   disabled = false,
   fullWidth = false,
   style,
@@ -91,6 +112,7 @@ const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       variant={variant}
+      color={color}
       fullWidth={fullWidth}
       style={style}
       whileHover={!disabled ? { scale: 1.03 } : {}}

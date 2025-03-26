@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class VerifyRequest {
     private String email;
     private String code;
+    private Boolean rememberMe = false;
     
     // Manual getters and setters in case Lombok isn't working
     public String getEmail() {

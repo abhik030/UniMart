@@ -56,13 +56,13 @@ const HomePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!email) {
       setError('Please enter your email address');
       return;
     }
     
-    if (!email.endsWith('.edu')) {
+    // Special case for developer account
+    if (email !== 'studentunimart@gmail.com' && !email.endsWith('.edu')) {
       setError('Please enter a valid .edu email address');
       return;
     }

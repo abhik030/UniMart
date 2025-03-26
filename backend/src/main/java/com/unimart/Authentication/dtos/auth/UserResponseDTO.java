@@ -14,6 +14,7 @@ public class UserResponseDTO {
     private String redirectUrl;
     private Boolean isFirstLogin;
     private String token;
+    private String trustedDeviceToken;
     
     // Constructor without redirectUrl for backward compatibility
     public UserResponseDTO(String email, String username, String university) {
@@ -69,6 +70,14 @@ public class UserResponseDTO {
     
     public void setToken(String token) {
         this.token = token;
+    }
+    
+    public String getTrustedDeviceToken() {
+        return trustedDeviceToken;
+    }
+    
+    public void setTrustedDeviceToken(String trustedDeviceToken) {
+        this.trustedDeviceToken = trustedDeviceToken;
     }
 }
 

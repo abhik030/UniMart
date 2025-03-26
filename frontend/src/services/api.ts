@@ -136,6 +136,39 @@ export const authService = {
     }
   },
   
+  getUserProfile: async (email: string): Promise<ProfileSetupResponse | null> => {
+    try {
+      const response = await api.get(`/auth/profile/${email}`);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error getting user profile:", error);
+      
+      // Temporary fallback to load profile from session storage
+      console.warn("Using temporary profile from session storage");
+      const firstName = sessionStorage.getItem('firstName');
+      const lastName = sessionStorage.getItem('lastName');
+      const profilePictureUrl = sessionStorage.getItem('profilePictureUrl');
+      const universityName = sessionStorage.getItem('universityName');
+      
+      // If we have any profile data in session storage, return it
+      if (firstName && lastName) {
+        return {
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: sessionStorage.getItem('phoneNumber') || '',
+          description: sessionStorage.getItem('description') || null,
+          profilePictureUrl: profilePictureUrl || null,
+          universityName: universityName || '',
+          token: sessionStorage.getItem('token') || ''
+        } as ProfileSetupResponse;
+      }
+      
+      // Return null if no profile data is found
+      return null;
+    }
+  },
+  
   getSupportedUniversities: async (): Promise<SupportedUniversityDTO[]> => {
     try {
       const response = await api.get('/auth/supported-universities');

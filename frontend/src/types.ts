@@ -32,12 +32,15 @@ export interface SchoolRedirectDTO {
 }
 
 export interface UserResponseDTO {
-  id: number;
+  id?: number;
   email: string;
   username?: string;
-  universityName: string;
+  university?: string;
+  universityName?: string;
   token: string;
-  isFirstLogin: boolean;
+  isFirstLogin?: boolean;
+  redirectUrl?: string;
+  trustedDeviceToken?: string;
 }
 
 export interface SupportedUniversityDTO {

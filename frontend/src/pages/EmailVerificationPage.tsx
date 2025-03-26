@@ -63,7 +63,8 @@ const EmailVerificationPage: React.FC = () => {
       return;
     }
     
-    if (!email.includes('@') || !email.endsWith('.edu')) {
+    // Special case for developer account
+    if (email !== 'studentunimart@gmail.com' && (!email.includes('@') || !email.endsWith('.edu'))) {
       setError('Please enter a valid .edu email address');
       return;
     }

@@ -8,7 +8,10 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.unimart.Authentication.dtos.auth.ProfileSetupRequest;
+import com.unimart.Authentication.dtos.auth.ProfileSetupResponse;
 import com.unimart.Authentication.dtos.auth.SchoolRedirectDTO;
 import com.unimart.Authentication.dtos.auth.UserResponseDTO;
 import com.unimart.Authentication.dtos.auth.SupportedUniversityDTO;
@@ -17,8 +20,10 @@ import com.unimart.Authentication.exceptions.InvalidVerificationCodeException;
 import com.unimart.Authentication.exceptions.SchoolNotFoundException;
 import com.unimart.Authentication.models.University;
 import com.unimart.Authentication.models.User;
+import com.unimart.Authentication.models.UserProfile;
 import com.unimart.Authentication.models.VerificationCode;
 import com.unimart.Authentication.repositories.UniversityRepository;
+import com.unimart.Authentication.repositories.UserProfileRepository;
 import com.unimart.Authentication.repositories.UserRepository;
 import com.unimart.Authentication.repositories.VerificationCodeRepository;
 
@@ -38,12 +43,54 @@ public class AuthService {
     
     @Autowired
     private VerificationCodeRepository verificationCodeRepository;
+    
+    @Autowired
+    private UserProfileRepository userProfileRepository;
 
     /**
      * Validates if the email is a valid school email and sends an authentication code
      */
     @Transactional
     public SchoolRedirectDTO validateEmail(String email) {
+        // Special case for developer/testing account
+        if (email.equals("studentunimart@gmail.com")) {
+            log.info("Developer account email detected: {}", email);
+            // Use Northeastern University as the default university for the developer account
+            University university = universityRepository.findByDomain("northeastern.edu")
+                    .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+            
+            // Generate and send verification code
+            String code = generateCode();
+            LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(10);
+            
+            // Delete any existing verification codes for this email
+            verificationCodeRepository.findByEmail(email)
+                    .ifPresent(verificationCodeRepository::delete);
+            
+            // Save new verification code
+            verificationCodeRepository.save(new VerificationCode(email, code, expirationTime));
+            
+            // Create email body for developer
+            String emailBody = String.format(
+                "Welcome to UniMart Developer Account!\n\n" +
+                "Your verification code is: %s\n\n" +
+                "This code will expire in 10 minutes.\n\n" +
+                "Thank you for using the developer account!",
+                code
+            );
+            
+            // Send the email
+            emailService.sendEmail(email, "UniMart Developer Verification Code", emailBody);
+            
+            // Return university information for the frontend
+            String marketplaceUrl = generateRedirectUrl(university);
+            String marketplaceName = getMarketplaceName(university);
+            
+            SchoolRedirectDTO dto = new SchoolRedirectDTO(university.getName(), marketplaceUrl);
+            dto.setMarketplaceName(marketplaceName);
+            return dto;
+        }
+        
         // Check if email is a valid .edu email
         if (!email.endsWith(".edu")) {
             throw new InvalidEmailException("Only .edu email addresses are allowed.");
@@ -112,7 +159,7 @@ public class AuthService {
      * Verifies the code sent to the user's email and creates/updates the user account
      */
     @Transactional
-    public UserResponseDTO verifyCode(String email, String code) {
+    public UserResponseDTO verifyCode(String email, String code, boolean rememberMe) {
         // Special case for testing - dummy code 123456
         if ("123456".equals(code)) {
             log.info("Using dummy verification code 123456 for email: {}", email);
@@ -144,6 +191,14 @@ public class AuthService {
             
             // Mark user as verified
             user.setVerified(true);
+            
+            // If remember me is enabled, generate a trusted device token
+            if (rememberMe) {
+                String trustedToken = generateTrustedDeviceToken(email);
+                user.setTrustedDeviceToken(trustedToken);
+                log.info("Remember me enabled. Set trusted device token for user: {}", email);
+            }
+            
             user = userRepository.save(user);
             
             // Generate a simple token (in a real app, this would be a JWT)
@@ -158,6 +213,9 @@ public class AuthService {
             dto.setRedirectUrl(redirectUrl);
             dto.setIsFirstLogin(isNewUser);
             dto.setToken(token);
+            if (rememberMe) {
+                dto.setTrustedDeviceToken(user.getTrustedDeviceToken());
+            }
             return dto;
         }
 
@@ -207,6 +265,14 @@ public class AuthService {
         
         // Mark user as verified
         user.setVerified(true);
+        
+        // If remember me is enabled, generate a trusted device token
+        if (rememberMe) {
+            String trustedToken = generateTrustedDeviceToken(email);
+            user.setTrustedDeviceToken(trustedToken);
+            log.info("Remember me enabled. Set trusted device token for user: {}", email);
+        }
+        
         user = userRepository.save(user);
         
         // Mark verification code as used
@@ -233,9 +299,92 @@ public class AuthService {
         dto.setRedirectUrl(redirectUrl);
         dto.setIsFirstLogin(isNewUser);
         dto.setToken(token);
+        if (rememberMe) {
+            dto.setTrustedDeviceToken(user.getTrustedDeviceToken());
+        }
         return dto;
     }
     
+    /**
+     * Fallback for the old method signature to maintain compatibility
+     */
+    @Transactional
+    public UserResponseDTO verifyCode(String email, String code) {
+        return verifyCode(email, code, false);
+    }
+    
+    /**
+     * Verifies if a trusted device token is valid
+     */
+    public boolean verifyTrustedDeviceToken(String email, String token) {
+        if (email == null || token == null || token.isEmpty()) {
+            return false;
+        }
+        
+        return userRepository.findByEmail(email)
+                .map(user -> token.equals(user.getTrustedDeviceToken()))
+                .orElse(false);
+    }
+    
+    /**
+     * Generates a token for trusted devices
+     */
+    private String generateTrustedDeviceToken(String email) {
+        // In a real application, this would be a secure token with an expiration
+        return "trusted-" + email + "-" + System.currentTimeMillis();
+    }
+
+    /**
+     * Sets up the user profile and returns profile information
+     */
+    @Transactional
+    public ProfileSetupResponse setupProfile(ProfileSetupRequest request, MultipartFile profilePicture) {
+        String email = request.getEmail();
+        
+        // Get the user from the repository
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+        
+        // Create or update user profile
+        UserProfile profile = userProfileRepository.findByUserEmail(email)
+                .orElse(new UserProfile());
+        
+        profile.setUser(user);
+        profile.setUserEmail(email);
+        profile.setFirstName(request.getFirstName());
+        profile.setLastName(request.getLastName());
+        profile.setPhoneNumber(request.getPhoneNumber());
+        profile.setBio(request.getDescription());
+        
+        // Handle profile picture
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            // In a real application, upload the file to a storage service and get a URL
+            // For now, we'll use a placeholder URL
+            String profilePictureUrl = "https://unimart.com/profile-pictures/" + System.currentTimeMillis() + "_" + profilePicture.getOriginalFilename();
+            profile.setProfileImageUrl(profilePictureUrl);
+        }
+        
+        // Save the profile
+        profile = userProfileRepository.save(profile);
+        
+        // Generate a token that includes profile info
+        String token = generateToken(user);
+        
+        // Return the response
+        ProfileSetupResponse response = new ProfileSetupResponse();
+        response.setId(user.getUniversity().getId());
+        response.setEmail(email);
+        response.setFirstName(profile.getFirstName());
+        response.setLastName(profile.getLastName());
+        response.setPhoneNumber(profile.getPhoneNumber());
+        response.setDescription(profile.getBio());
+        response.setProfilePictureUrl(profile.getProfileImageUrl());
+        response.setUniversityName(user.getUniversity().getName());
+        response.setToken(token);
+        
+        return response;
+    }
+
     /**
      * Generates a random 6-digit verification code
      */
@@ -317,9 +466,33 @@ public class AuthService {
     }
 
     /**
+     * Get a user by email
+     */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+    }
+
+    /**
      * Generate a simple token for the user (placeholder for JWT implementation)
      */
-    private String generateToken(User user) {
+    public String generateToken(User user) {
         return "token-" + user.getEmail() + "-" + System.currentTimeMillis();
+    }
+
+    /**
+     * Health check to verify database connection
+     */
+    public boolean databaseHealthCheck() {
+        try {
+            // Try to execute a simple DB query
+            long userCount = userRepository.count();
+            long universityCount = universityRepository.count();
+            log.info("Database health check: {} users, {} universities", userCount, universityCount);
+            return true;
+        } catch (Exception e) {
+            log.error("Database health check failed", e);
+            return false;
+        }
     }
 }

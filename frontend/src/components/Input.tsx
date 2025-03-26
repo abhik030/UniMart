@@ -14,6 +14,9 @@ interface InputProps {
   required?: boolean;
   disabled?: boolean;
   maxLength?: number;
+  min?: string;
+  max?: string;
+  step?: string;
 }
 
 const InputContainer = styled.div`
@@ -70,6 +73,9 @@ const Input: React.FC<InputProps> = ({
   required = false,
   disabled = false,
   maxLength,
+  min,
+  max,
+  step,
 }) => {
   return (
     <InputContainer>
@@ -89,6 +95,9 @@ const Input: React.FC<InputProps> = ({
         required={required}
         disabled={disabled}
         maxLength={maxLength}
+        min={min}
+        max={max}
+        step={step}
         whileFocus={{ scale: 1.01 }}
       />
       {error && <ErrorMessage>{error}</ErrorMessage>}

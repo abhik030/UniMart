@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import PinInput from '../components/PinInput';
 import { authService } from '../services/api';
 import { env } from '../services/env';
+import { UserResponseDTO } from '../types';
 
 const Container = styled.div`
   display: flex;
@@ -197,15 +198,24 @@ const VerificationPage: React.FC = () => {
       // Store user data
       sessionStorage.setItem('email', email);
       sessionStorage.setItem('username', response.username || '');
+      sessionStorage.setItem('universityName', response.universityName || response.university || '');
       sessionStorage.setItem('token', response.token);
       
       // If remember me is checked, store in localStorage as well
       if (rememberMe) {
         localStorage.setItem('email', email);
         localStorage.setItem('token', response.token);
+        
+        // Store trusted device token if provided
+        if ((response as any).trustedDeviceToken) {
+          localStorage.setItem('trustedDeviceToken', (response as any).trustedDeviceToken);
+        }
       }
       
       console.log("Verification response:", response);
+      
+      // Store isFirstLogin flag in session storage
+      sessionStorage.setItem('isFirstLogin', String(response.isFirstLogin === true));
       
       // Extract domain from email to check if it's directly supported
       const domain = email.split('@')[1];

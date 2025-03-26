@@ -182,6 +182,7 @@ const ProfileSetupPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const [isUpdating, setIsUpdating] = useState(false);
   
   useEffect(() => {
     // Get email from session storage
@@ -197,6 +198,43 @@ const ProfileSetupPage: React.FC = () => {
     
     console.log('Email found in session storage:', storedEmail);
     setEmail(storedEmail);
+    
+    // Check if we're coming from the "Update Profile" action
+    const updatingProfile = sessionStorage.getItem('isUpdatingProfile') === 'true';
+    setIsUpdating(updatingProfile);
+    
+    // If updating profile, fetch existing profile data
+    const fetchProfileData = async () => {
+      try {
+        const profile = await authService.getUserProfile(storedEmail);
+        if (profile) {
+          console.log('Existing profile data found:', profile);
+          // Pre-fill form with existing data
+          setFirstName(profile.firstName || '');
+          setLastName(profile.lastName || '');
+          setPhoneNumber(profile.phoneNumber || '');
+          setDescription(profile.description || '');
+          
+          // If there's a profile picture URL, set it as preview
+          if (profile.profilePictureUrl) {
+            setProfilePicturePreview(profile.profilePictureUrl);
+          }
+        } else {
+          console.log('No existing profile data found');
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      }
+    };
+    
+    // Always try to fetch profile data to pre-fill the form
+    fetchProfileData();
+    
+    // If we came from clicking "Update Profile", update the page title
+    if (updatingProfile) {
+      // Clear the flag after using it
+      sessionStorage.removeItem('isUpdatingProfile');
+    }
   }, [navigate]);
   
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,12 +306,28 @@ const ProfileSetupPage: React.FC = () => {
       const response = await authService.setupProfile(profileData, email);
       console.log('Profile setup response:', response);
       
-      // Store user profile info in session storage
+      // Store user profile info in session storage and local storage for persistence
       sessionStorage.setItem('firstName', response.firstName);
       sessionStorage.setItem('lastName', response.lastName);
+      sessionStorage.setItem('phoneNumber', response.phoneNumber || '');
       sessionStorage.setItem('token', response.token);
+      if (response.description) {
+        sessionStorage.setItem('description', response.description);
+      }
       if (response.profilePictureUrl) {
         sessionStorage.setItem('profilePictureUrl', response.profilePictureUrl);
+      }
+      
+      // Also store in localStorage for persistence across browser sessions
+      localStorage.setItem('firstName', response.firstName);
+      localStorage.setItem('lastName', response.lastName);
+      localStorage.setItem('phoneNumber', response.phoneNumber || '');
+      localStorage.setItem('token', response.token);
+      if (response.description) {
+        localStorage.setItem('description', response.description);
+      }
+      if (response.profilePictureUrl) {
+        localStorage.setItem('profilePictureUrl', response.profilePictureUrl);
       }
       
       // After completing profile setup, go directly to the marketplace
@@ -310,9 +364,11 @@ const ProfileSetupPage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Title>Complete Your Profile</Title>
+        <Title>{isUpdating ? 'Update Your Profile' : 'Complete Your Profile'}</Title>
         <Subtitle>
-          Please provide some additional information to complete your account setup.
+          {isUpdating 
+            ? 'Update your profile information below.' 
+            : 'Please provide some additional information to complete your account setup.'}
         </Subtitle>
         
         <Form onSubmit={handleSubmit}>
@@ -394,7 +450,11 @@ const ProfileSetupPage: React.FC = () => {
             fullWidth 
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Complete Setup'}
+            {loading 
+              ? 'Saving...' 
+              : isUpdating 
+                ? 'Update Profile' 
+                : 'Complete Setup'}
           </Button>
         </Form>
       </Card>
