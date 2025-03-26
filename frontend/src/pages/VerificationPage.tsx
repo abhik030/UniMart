@@ -137,12 +137,17 @@ const VerificationPage: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    console.log('[VerificationPage] Component mounted');
     // Get email from session storage
     const storedEmail = sessionStorage.getItem('email');
     const storedUniversityName = sessionStorage.getItem('universityName');
     
+    console.log('[VerificationPage] Email from session storage:', storedEmail);
+    console.log('[VerificationPage] University from session storage:', storedUniversityName);
+    
     if (!storedEmail) {
       // Redirect to home if no email is found
+      console.error('[VerificationPage] No email found in session storage, redirecting to home');
       navigate('/');
       return;
     }

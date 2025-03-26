@@ -3,6 +3,9 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
+# Cache busting - add a timestamp to force rebuild
+ARG CACHEBUST=timestamp
+
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
@@ -12,8 +15,8 @@ RUN npm ci
 # Copy the rest of the code
 COPY . .
 
-# Build the app
-RUN npm run build
+# Build the app with the timestamp to force rebuild
+RUN echo "Building with CACHEBUST=${CACHEBUST}" && npm run build
 
 # Production stage
 FROM nginx:alpine

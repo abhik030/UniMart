@@ -49,6 +49,7 @@ const UniversitiesList = styled.div`
   gap: 1.5rem;
   width: 100%;
   margin-top: 2rem;
+  margin-bottom: 3rem;
 `;
 
 const UniversityCard = styled(motion.div)`
@@ -85,7 +86,7 @@ const LoadingText = styled.p`
 `;
 
 const BackButton = styled(Button)`
-  margin-top: 2rem;
+  margin-top: 3rem;
 `;
 
 const UnsupportedSchoolPage: React.FC = () => {
@@ -121,11 +122,37 @@ const UnsupportedSchoolPage: React.FC = () => {
     fetchUniversities();
   }, [navigate]);
 
-  const handleUniversityClick = (university: SupportedUniversityDTO) => {
+  const handleUniversityClick = async (university: SupportedUniversityDTO) => {
     // Store university info in session storage
     sessionStorage.setItem('universityName', university.name);
-    // Navigate to the marketplace
-    navigate('/marketplace');
+    
+    // Get email from session storage
+    const storedEmail = sessionStorage.getItem('email');
+    console.log("[UnsupportedSchoolPage] Clicking university:", university.name);
+    console.log("[UnsupportedSchoolPage] Email from session storage:", storedEmail);
+    
+    if (!storedEmail) {
+      console.error("[UnsupportedSchoolPage] No email found in session storage");
+      alert("No email found. Please start from the home page.");
+      navigate('/');
+      return;
+    }
+    
+    try {
+      console.log("[UnsupportedSchoolPage] Sending validation email for:", storedEmail);
+      // Send validation email for the selected university
+      const response = await authService.validateEmail(storedEmail);
+      console.log("[UnsupportedSchoolPage] Validation successful:", response);
+      
+      // Check browser console for debugging
+      alert("Check your browser console (F12) for debugging info");
+      
+      // Navigate to verification page
+      navigate('/verify');
+    } catch (error) {
+      console.error("[UnsupportedSchoolPage] Error in handleUniversityClick:", error);
+      alert("Failed to send verification code. Please try again or check console for details.");
+    }
   };
   
   return (

@@ -22,8 +22,13 @@ const api = axios.create({
 export const authService = {
   validateEmail: async (email: string): Promise<EmailValidationResponse> => {
     try {
+      console.log('Calling validateEmail API with email:', email);
+      console.log('API URL being used:', API_URL);
+      console.log('Full API endpoint:', `${API_URL}/auth/validate-email`);
+      
       const response = await api.post('/auth/validate-email', { email });
-      console.log('Backend response:', response.data);
+      console.log('Backend validateEmail response status:', response.status);
+      console.log('Backend validateEmail response data:', response.data);
       
       // Store the email in session storage
       sessionStorage.setItem('email', email);
@@ -35,6 +40,8 @@ export const authService = {
       };
     } catch (error: any) {
       console.error("Error validating email:", error);
+      console.error("Error response data:", error.response?.data);
+      console.error("Error status:", error.response?.status);
       
       // If the error is a 400 (Bad Request), it might be because the school is not supported
       if (error.response && error.response.status === 400) {

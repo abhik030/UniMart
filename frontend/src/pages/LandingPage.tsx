@@ -1,10 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import Logo from '../components/Logo';
 import Button from '../components/Button';
-import groupImage from './GettyImages-1202957911.jpg';
 import uniMartPhoto from './PhotoForUniMart.jpg';
 
 const Container = styled.div`
@@ -13,191 +12,222 @@ const Container = styled.div`
   align-items: center;
   justify-content: flex-start;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 0;
   background-color: ${props => props.theme.colors.background};
   position: relative;
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;
-    background: ${props => props.theme.colors.primary};
-    opacity: 0.05;
-    filter: blur(100px);
-    z-index: 0;
-  }
-  
-  &::before {
-    top: -100px;
-    left: -100px;
-    animation: float 15s ease-in-out infinite alternate;
-  }
-  
-  &::after {
-    bottom: 20%;
-    right: -100px;
-    animation: float 20s ease-in-out infinite alternate-reverse;
-  }
-  
-  @keyframes float {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(50px, 50px);
-    }
-  }
 `;
 
-const SideDecoration = styled.div`
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: 400px;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.15;
-
-  &.left {
-    left: 0;
-    background: 
-      radial-gradient(circle at 0% 50%, ${props => props.theme.colors.primary}30 0%, transparent 50%),
-      linear-gradient(
-        to right,
-        ${props => props.theme.colors.primary}20,
-        transparent 80%
-      );
-    transform: translateX(-20%);
-  }
-
-  &.right {
-    right: 0;
-    background: 
-      radial-gradient(circle at 100% 50%, ${props => props.theme.colors.primary}30 0%, transparent 50%),
-      linear-gradient(
-        to left,
-        ${props => props.theme.colors.primary}20,
-        transparent 80%
-      );
-    transform: translateX(20%);
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 20%;
-    width: 100%;
-    height: 60%;
-    background-image: ${props => props.theme.colors.primary}10;
-    filter: blur(50px);
-    animation: pulse 8s ease-in-out infinite alternate;
-  }
-
-  &.left::before {
-    right: -20%;
-    transform: skewY(-15deg);
-  }
-
-  &.right::before {
-    left: -20%;
-    transform: skewY(15deg);
-  }
-
-  @keyframes pulse {
-    0% {
-      opacity: 0.3;
-      transform: translateY(0) scale(0.9);
-    }
-    100% {
-      opacity: 0.6;
-      transform: translateY(50px) scale(1.1);
-    }
-  }
-`;
-
-const FloatingShape = styled.div`
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.1;
-  background: ${props => props.theme.colors.primary};
-  filter: blur(40px);
-  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-  animation: morph 8s ease-in-out infinite;
-
-  &.shape1 {
-    top: 15%;
-    left: 5%;
-  }
-
-  &.shape2 {
-    bottom: 15%;
-    right: 5%;
-    animation-delay: -4s;
-  }
-
-  @keyframes morph {
-    0% {
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    }
-    50% {
-      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
-    }
-    100% {
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    }
-  }
-`;
-
-const GridPattern = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: linear-gradient(${props => props.theme.colors.primary}05 1px, transparent 1px),
-    linear-gradient(90deg, ${props => props.theme.colors.primary}05 1px, transparent 1px);
-  background-size: 50px 50px;
-  opacity: 0.2;
-  z-index: 0;
-  pointer-events: none;
-`;
-
-const Header = styled.header`
+// New top bar styled like the image
+const TopBar = styled.div`
+  width: 100%;
+  background-color: ${props => props.theme.colors.background};
+  padding: 1rem 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+`;
+
+const NavContainer = styled.div`
+  display: flex;
+  justify-content: center;
   align-items: center;
   width: 100%;
   max-width: 1200px;
-  margin-bottom: 4rem;
+  padding: 0 2rem;
   position: relative;
-  z-index: 10;
-  position: sticky;
-  top: 0;
-  padding: 1rem 0;
-  backdrop-filter: blur(5px);
 `;
 
-const NavLinks = styled.div`
+const NavPill = styled.div`
+  background-color: rgba(45, 212, 191, 0.1);
+  border-radius: 50px;
+  padding: 0.5rem;
   display: flex;
-  gap: 2rem;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 2;
 `;
 
-const NavLink = styled.a`
-  color: ${props => props.theme.colors.text};
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+const NavButton = styled.button<{ active?: boolean }>`
+  background-color: ${props => props.active ? props.theme.colors.primary : 'transparent'};
+  color: ${props => props.active ? '#fff' : props.theme.colors.primary};
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: ${props => props.active ? '0 4px 8px rgba(45, 212, 191, 0.2)' : 'none'};
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover {
+    background-color: ${props => props.active ? props.theme.colors.primary : 'rgba(45, 212, 191, 0.15)'};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(45, 212, 191, 0.15);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+`;
+
+const CartAnimation = styled.div`
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  animation: moveCart 18s linear infinite;
+  z-index: 1;
+  
+  @keyframes moveCart {
+    0% {
+      transform: translateX(30px);
+      opacity: 0;
+    }
+    5% {
+      transform: translateX(70px);
+      opacity: 1;
+    }
+    20% {
+      transform: translateX(calc(50% - 300px));
+      opacity: 1;
+    }
+    22% {
+      transform: translateX(calc(50% - 280px));
+      opacity: 0;
+    }
+    50% {
+      transform: translateX(calc(50% + 280px));
+      opacity: 0;
+    }
+    52% {
+      transform: translateX(calc(50% + 300px));
+      opacity: 1;
+    }
+    95% {
+      transform: translateX(calc(100% - 70px));
+      opacity: 1;
+    }
+    98% {
+      transform: translateX(calc(100% - 30px));
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(30px);
+      opacity: 0;
+    }
+  }
+`;
+
+const CartIcon = styled.div`
+  color: ${props => props.theme.colors.primary};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  position: relative;
+  animation: cartBounce 0.6s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 5px rgba(45, 212, 191, 0.6));
+  transition: filter 0.3s ease, transform 0.3s ease;
   
   &:hover {
-    color: ${props => props.theme.colors.primary};
+    filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.8));
+    transform: scale(1.1);
+  }
+  
+  @keyframes cartBounce {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-2px);
+    }
+  }
+  
+  svg {
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(0 2px 4px rgba(45, 212, 191, 0.3));
+  }
+`;
+
+const CartItems = styled.div`
+  position: absolute;
+  top: -2px;
+  left: 8px;
+  width: 12px;
+  height: 12px;
+`;
+
+const CartItem = styled.div<{ color: string, delay: string, top?: boolean, left?: boolean }>`
+  width: 4px;
+  height: 4px;
+  background-color: ${props => props.color};
+  border-radius: 50%;
+  position: absolute;
+  animation: itemBounce 0.8s ease-in-out infinite alternate;
+  animation-delay: ${props => props.delay};
+  top: ${props => props.top ? '0px' : '4px'};
+  left: ${props => props.left ? '2px' : '6px'};
+  
+  @keyframes itemBounce {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-1px);
+    }
+  }
+`;
+
+const MenuButton = styled.button`
+  background-color: #fff;
+  color: #4b5178;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    background-color: #f0f0f0;
+  }
+  
+  svg {
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -212,6 +242,7 @@ const Content = styled.main`
   margin-top: 2rem;
   position: relative;
   z-index: 1;
+  padding: 0 2rem;
 `;
 
 const Title = styled(motion.h1)`
@@ -546,9 +577,11 @@ const PlaceholderIcon = styled.div`
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const homeRef = useRef<HTMLDivElement>(null);
   const aboutRef = useRef<HTMLElement>(null);
   const featuresRef = useRef<HTMLElement>(null);
   const contactRef = useRef<HTMLElement>(null);
+  const [activeSection, setActiveSection] = useState('home');
 
   const handleGetStarted = () => {
     // Add a cool animation before navigating
@@ -572,8 +605,13 @@ const LandingPage: React.FC = () => {
     }
   };
 
-  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
-    if (ref.current) {
+  const scrollToSection = (ref: React.RefObject<HTMLElement | HTMLDivElement>) => {
+    if (ref === homeRef) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else if (ref.current) {
       ref.current.scrollIntoView({ 
         behavior: 'smooth',
         block: 'start'
@@ -581,23 +619,68 @@ const LandingPage: React.FC = () => {
     }
   };
 
+  const scrollToNextSection = () => {
+    const scrollPosition = window.scrollY + 200;
+    
+    if (scrollPosition < aboutRef.current?.offsetTop!) {
+      scrollToSection(aboutRef);
+    } else if (scrollPosition < featuresRef.current?.offsetTop!) {
+      scrollToSection(featuresRef);
+    } else if (scrollPosition < contactRef.current?.offsetTop!) {
+      scrollToSection(contactRef);
+    } else {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 200;
+      
+      if (homeRef.current && scrollPosition < aboutRef.current?.offsetTop!) {
+        setActiveSection('home');
+      } else if (aboutRef.current && scrollPosition >= aboutRef.current.offsetTop && scrollPosition < featuresRef.current?.offsetTop!) {
+        setActiveSection('about');
+      } else if (featuresRef.current && scrollPosition >= featuresRef.current.offsetTop && scrollPosition < contactRef.current?.offsetTop!) {
+        setActiveSection('features');
+      } else if (contactRef.current && scrollPosition >= contactRef.current.offsetTop) {
+        setActiveSection('contact');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <Container>
-      <GridPattern />
-      <SideDecoration className="left" />
-      <SideDecoration className="right" />
-      <FloatingShape className="shape1" />
-      <FloatingShape className="shape2" />
+      <TopBar>
+        <NavContainer>
+          <CartAnimation onClick={handleGetStarted}>
+            <CartIcon>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
+              <CartItems>
+                <CartItem color="#ff6b6b" delay="0s" top left />
+                <CartItem color="#4ecdc4" delay="0.1s" left={false} />
+                <CartItem color="#ffe66d" delay="0.2s" />
+              </CartItems>
+            </CartIcon>
+          </CartAnimation>
+          <NavPill>
+            <NavButton active={activeSection === 'home'} onClick={() => scrollToSection(homeRef)}>Home</NavButton>
+            <NavButton active={activeSection === 'about'} onClick={() => scrollToSection(aboutRef)}>About</NavButton>
+            <NavButton active={activeSection === 'features'} onClick={() => scrollToSection(featuresRef)}>Features</NavButton>
+            <NavButton active={activeSection === 'contact'} onClick={() => scrollToSection(contactRef)}>Contact</NavButton>
+          </NavPill>
+        </NavContainer>
+      </TopBar>
       
-      <Header>
-        <Logo />
-        <NavLinks>
-          <NavLink onClick={() => scrollToSection(aboutRef)}>About</NavLink>
-          <NavLink onClick={() => scrollToSection(featuresRef)}>Features</NavLink>
-          <NavLink onClick={() => scrollToSection(contactRef)}>Contact</NavLink>
-        </NavLinks>
-      </Header>
-      
+      <div style={{ height: "80px" }} ref={homeRef}></div>
       <Content>
         <Title
           initial={{ opacity: 0, y: 20 }}
@@ -638,7 +721,7 @@ const LandingPage: React.FC = () => {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1, duration: 0.5 }}
-        onClick={() => scrollToSection(aboutRef)}
+        onClick={scrollToNextSection}
       >
         Explore More
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -671,7 +754,7 @@ const LandingPage: React.FC = () => {
           </AboutTextContent>
           <AboutImageContainer>
             <img 
-              src={groupImage} 
+              src="/AboutUsPic.JPG"
               alt="That's me in the middle!"
             />
           </AboutImageContainer>
