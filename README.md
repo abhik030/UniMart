@@ -12,9 +12,13 @@ This is my project UniMart.
 
 # 🌟 Features
 Product Listings: Easily browse through a wide range of products with detailed descriptions and pricing.
+
 User Authentication: Secure login and registration system for both customers and administrators.
+
 Product Management: Admins can add, update, or remove products from the catalog.
+
 Cart and Checkout: Users can add items to their cart and proceed through a smooth checkout process.
+
 Order History: Customers can view their past orders and track the status of ongoing deliveries.
 
 
