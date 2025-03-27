@@ -10,7 +10,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Hello,
 This is my project UniMart. 
 
-#🌟 Features
+# 🌟 Features
 Product Listings: Easily browse through a wide range of products with detailed descriptions and pricing.
 User Authentication: Secure login and registration system for both customers and administrators.
 Product Management: Admins can add, update, or remove products from the catalog.
