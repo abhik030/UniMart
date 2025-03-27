@@ -1,7 +1,7 @@
 # 🛒 UniMart - E-commerce Platform
 Welcome to UniMart, a student exclusive e-commerce platform that allows users to explore, shop, and manage products seamlessly. Whether you're a student or a teacher looking to sell your products or a customer browsing for your next purchase, UniMart provides a modern and intuitive solution for all your e-commerce needs.
 
-## License
+# 📄 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 
