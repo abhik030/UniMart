@@ -5,11 +5,6 @@ Welcome to UniMart, a student exclusive e-commerce platform that allows users to
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 
-
-
-Hello,
-This is my project UniMart. 
-
 # 🌟 Features
 Product Listings: Easily browse through a wide range of products with detailed descriptions and pricing.
 
@@ -22,8 +17,7 @@ Cart and Checkout: Users can add items to their cart and proceed through a smoot
 Order History: Customers can view their past orders and track the status of ongoing deliveries.
 
 
-But here are some basic facts:
-1. Student exclusive marketplace
+# 🛠️ Basic Facts + Tech Stack
 2. Made For Students, By Students
 3. Tech Stack:
     - Backend:
