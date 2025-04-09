@@ -12,7 +12,7 @@ const GlobalStyle = createGlobalStyle`
   }
   
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
       Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -30,9 +30,14 @@ const GlobalStyle = createGlobalStyle`
     font-family: inherit;
   }
   
+  p, span, div, li, a, button, input, textarea, select, label {
+    font-family: 'Poppins', sans-serif;
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     line-height: 1.2;
+    font-family: 'Inter', sans-serif;
   }
   
   img {

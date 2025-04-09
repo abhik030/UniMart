@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
 import { motion } from 'framer-motion';
 
@@ -156,6 +156,7 @@ const HeaderTitle = styled.h1`
   font-weight: 700;
   margin: 0;
   color: white;
+  cursor: pointer;
   
   .husky {
     color: white;
@@ -541,6 +542,7 @@ interface CartItem {
 
 const ShoppingCartPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(sampleCartItems);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -602,6 +604,12 @@ const ShoppingCartPage: React.FC = () => {
     navigate('/huskymart');
   };
 
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/');
+  };
+
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
@@ -625,16 +633,15 @@ const ShoppingCartPage: React.FC = () => {
     <ThemeProvider theme={huskyTheme}>
       <Container>
         <Header>
-          <LogoContainer onClick={handleLogoClick}>
-            <CartIcon viewBox="0 0 24 24" onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              navigate('/'); // Navigate to UniMart homepage
-            }}>
+          <LogoContainer>
+            <CartIcon viewBox="0 0 24 24" onClick={handleCartClick}>
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
             </CartIcon>
             <CartTooltip>Back to UniMart</CartTooltip>
-            <HeaderTitle><span className="husky">Husky</span><span className="mart">Mart</span></HeaderTitle>
+            <HeaderTitle onClick={handleLogoClick}>
+              <span className="husky">Husky</span>
+              <span className="mart">Mart</span>
+            </HeaderTitle>
           </LogoContainer>
           
           <SearchContainer>
@@ -687,7 +694,13 @@ const ShoppingCartPage: React.FC = () => {
         </Header>
 
         <CartContainer>
-          <BackButton onClick={() => navigate(-1)}>
+          <BackButton onClick={() => {
+            if (location.state?.fromCheckout) {
+              navigate('/huskymart'); // Navigate to HuskyMart if coming from checkout
+            } else {
+              navigate(-1); // Otherwise, go back to the previous page
+            }
+          }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
             </svg>
@@ -747,14 +760,17 @@ const ShoppingCartPage: React.FC = () => {
                   <span>${calculateTotal()}</span>
                 </SummaryRow>
                 <SummaryRow>
-                  <span>Shipping</span>
-                  <span>Free</span>
+                  <span>Estimated Tax</span>
+                  <span>${(calculateTotal() * 0.0625).toFixed(2)}</span>
                 </SummaryRow>
                 <SummaryRow>
                   <span>Total</span>
-                  <span>${calculateTotal()}</span>
+                  <span>${(calculateTotal() * 1.0625).toFixed(2)}</span>
                 </SummaryRow>
-                <CheckoutButton disabled={calculateTotal() === 0}>
+                <CheckoutButton 
+                  disabled={calculateTotal() === 0}
+                  onClick={() => navigate('/checkout')}
+                >
                   {calculateTotal() === 0 ? 'Select items to checkout' : 'Proceed to Checkout'}
                 </CheckoutButton>
               </CartSummary>

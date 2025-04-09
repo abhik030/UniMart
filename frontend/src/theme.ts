@@ -13,7 +13,7 @@ const theme = {
     primaryLight: 'rgba(0, 191, 166, 0.1)',
   },
   fonts: {
-    body: "'Inter', sans-serif",
+    body: "'Poppins', sans-serif",
     heading: "'Inter', sans-serif",
   },
   fontSizes: {

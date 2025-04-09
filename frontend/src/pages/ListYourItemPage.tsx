@@ -327,6 +327,41 @@ const FilterCheckbox = styled.input`
   }
 `;
 
+const ToggleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+`;
+
+const ToggleLabel = styled.label`
+  font-size: 1rem;
+  color: ${props => props.theme.colors.text};
+  cursor: pointer;
+`;
+
+const ToggleSwitch = styled.div<{ active: boolean }>`
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background-color: ${props => props.active ? props.theme.colors.primary : props.theme.colors.border};
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  &:after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    top: 2px;
+    left: ${props => props.active ? '28px' : '2px'};
+    transition: left 0.2s ease;
+  }
+`;
+
 interface AddItemForm {
   title: string;
   price: string;
@@ -350,6 +385,7 @@ interface AddItemForm {
   bathroom_type?: string;
   utilities_included?: boolean;
   utilities_details?: string;
+  allowsBidding: boolean;
 }
 
 interface CategoryField {
@@ -369,7 +405,8 @@ const ListYourItemPage: React.FC = () => {
     condition: 'New',
     description: '',
     images: [],
-    sublet_period: []
+    sublet_period: [],
+    allowsBidding: true
   });
   
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -618,6 +655,13 @@ const ListYourItemPage: React.FC = () => {
     // Clean up preview URLs
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     navigate('/huskymart');
+  };
+
+  const handleToggleBidding = () => {
+    setFormData(prev => ({
+      ...prev,
+      allowsBidding: !prev.allowsBidding
+    }));
   };
 
   // Render a specific field based on its type
@@ -884,6 +928,21 @@ const ListYourItemPage: React.FC = () => {
                   </ImagePreviewContainer>
                 )}
               </FormRow>
+              
+              <FormGroup>
+                <ToggleContainer>
+                  <ToggleLabel htmlFor="allowsBidding">Allow Bidding</ToggleLabel>
+                  <ToggleSwitch
+                    active={formData.allowsBidding}
+                    onClick={handleToggleBidding}
+                    role="switch"
+                    aria-checked={formData.allowsBidding}
+                  />
+                </ToggleContainer>
+                <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.5rem' }}>
+                  When enabled, buyers can make offers below your asking price. You can accept, decline, or counter these offers.
+                </p>
+              </FormGroup>
               
               <ButtonGroup>
                 <Button

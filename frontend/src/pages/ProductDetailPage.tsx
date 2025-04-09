@@ -3,6 +3,55 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
 import { motion } from 'framer-motion';
 
+// Styled components
+const Input = styled.input`
+  padding: 0.75rem;
+  border: 1px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #000000;
+  background-color: white;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme.colors.primary};
+    box-shadow: 0 0 0 2px ${props => props.theme.colors.primaryLight};
+  }
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const Label = styled.label`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${props => props.theme.colors.text};
+`;
+
+const Button = styled.button`
+  padding: 0.75rem 1.5rem;
+  background-color: ${props => props.theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: ${props => props.theme.colors.primaryDark};
+  }
+  
+  &:disabled {
+    background-color: ${props => props.theme.colors.border};
+    cursor: not-allowed;
+  }
+`;
+
 // Northeastern University theme
 const huskyTheme = {
   colors: {
@@ -408,7 +457,71 @@ const SecondaryButton = styled.button`
   }
 `;
 
+// New styled components for bidding
+interface BidFormProps {
+  disabled?: boolean;
+  onSubmit: (e: React.FormEvent) => void;
+  children: React.ReactNode;
+}
+
+const BidForm = styled.form<BidFormProps>`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  color: #000000;
+  
+  ${props => props.disabled && `
+    opacity: 0.6;
+    pointer-events: none;
+  `}
+`;
+
+const BidInput = styled(Input)`
+  width: 100%;
+  max-width: 200px;
+`;
+
+const BidHistory = styled.div`
+  margin-top: 1.5rem;
+  color: #000000;
+`;
+
+const BidItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid ${props => props.theme.colors.border};
+  color: #000000;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const BidAmount = styled.span`
+  font-weight: 600;
+  color: ${props => props.theme.colors.primary};
+`;
+
+const BidTime = styled.span`
+  color: #000000;
+  font-size: 0.875rem;
+`;
+
 // Define our mock product data - in a real app, this would come from an API
+interface Bid {
+  id: number;
+  amount: number;
+  bidder: string;
+  time: string;
+  status: 'pending' | 'accepted' | 'declined';
+}
+
 interface Product {
   id: number;
   title: string;
@@ -422,6 +535,10 @@ interface Product {
   };
   postedTime: string;
   image?: string;
+  allowsBidding: boolean;
+  currentBid?: number;
+  bids?: Bid[];
+  hasPendingBid?: boolean;
 }
 
 const mockProducts: Record<string, Product> = {
@@ -436,6 +553,17 @@ const mockProducts: Record<string, Product> = {
       name: 'John Doe',
     },
     postedTime: '3 days ago',
+    allowsBidding: true,
+    currentBid: 40,
+    bids: [
+      {
+        id: 1,
+        amount: 40,
+        bidder: 'Jane Smith',
+        time: '2 days ago',
+        status: 'pending'
+      }
+    ]
   },
   '2': {
     id: 2,
@@ -448,8 +576,67 @@ const mockProducts: Record<string, Product> = {
       name: 'Jane Smith',
     },
     postedTime: '1 day ago',
+    allowsBidding: false
   },
 };
+
+// New styled components for the success popup
+const PopupOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const PopupContent = styled.div`
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #000000;
+  padding: 0.5rem;
+  line-height: 1;
+`;
+
+const PopupTitle = styled.h3`
+  margin-bottom: 1rem;
+  color: #000000;
+`;
+
+const PopupMessage = styled.p`
+  margin-bottom: 1.5rem;
+  color: #000000;
+`;
+
+const PopupButton = styled.button`
+  padding: 0.75rem 1.5rem;
+  background-color: ${props => props.theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0 0.5rem;
+`;
 
 // Main component
 const ProductDetailPage: React.FC = () => {
@@ -457,17 +644,16 @@ const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [bidAmount, setBidAmount] = useState('');
+  const [isSubmittingBid, setIsSubmittingBid] = useState(false);
+  const [showBidSuccess, setShowBidSuccess] = useState(false);
   
   useEffect(() => {
     // In a real app, fetch product data from an API
-    // For now, we'll use our mock data
     if (productId && mockProducts[productId]) {
       setProduct(mockProducts[productId]);
-    } else {
-      // Handle product not found - redirect or show error
-      // navigate('/huskymart');
     }
-  }, [productId, navigate]);
+  }, [productId]);
   
   const handleGoBack = () => {
     navigate(-1);
@@ -530,6 +716,60 @@ const ProductDetailPage: React.FC = () => {
       // Show success message
       alert('Product added to cart!');
     }, 500);
+  };
+  
+  const handleBidSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !bidAmount) return;
+    
+    // Check if user already has a pending bid
+    if (product.hasPendingBid) {
+      alert('You already have a pending bid. Please wait for the seller to respond.');
+      return;
+    }
+    
+    const bidValue = parseFloat(bidAmount);
+    if (isNaN(bidValue) || bidValue >= product.price) {
+      alert('Bid amount must be less than the asking price');
+      return;
+    }
+    
+    setIsSubmittingBid(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // In a real app, this would be an API call
+      const newBid = {
+        id: Date.now(),
+        amount: bidValue,
+        bidder: 'Current User', // This would be the actual user's name
+        time: 'Just now',
+        status: 'pending' as const
+      };
+      
+      setProduct(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          currentBid: bidValue,
+          bids: [...(prev.bids || []), newBid],
+          hasPendingBid: true
+        };
+      });
+      
+      setBidAmount('');
+      setIsSubmittingBid(false);
+      setShowBidSuccess(true);
+    }, 1000);
+  };
+  
+  const handleClosePopup = () => {
+    setShowBidSuccess(false);
+  };
+  
+  const handleGoToMarketplace = () => {
+    const school = sessionStorage.getItem('school') || 'HuskyMart';
+    navigate(`/${school.toLowerCase()}`);
   };
   
   if (!product) {
@@ -624,6 +864,60 @@ const ProductDetailPage: React.FC = () => {
                 </ContactSellerButton>
               </SellerInfo>
               
+              {product.allowsBidding && (
+                <>
+                  <BidForm onSubmit={handleBidSubmit} disabled={product.hasPendingBid}>
+                    <h3 style={{ color: '#000000' }}>Make an Offer</h3>
+                    <p style={{ color: '#000000' }}>Current highest bid: ${product.currentBid || product.price}</p>
+                    {product.hasPendingBid && (
+                      <p style={{ color: '#000000', fontWeight: 'bold' }}>
+                        You have a pending bid. Please wait for the seller to respond.
+                      </p>
+                    )}
+                    <FormGroup>
+                      <Label htmlFor="bidAmount">Your Bid ($)</Label>
+                      <BidInput
+                        type="number"
+                        id="bidAmount"
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        min="0"
+                        max={product.price - 0.01}
+                        step="0.01"
+                        required
+                        disabled={product.hasPendingBid}
+                      />
+                    </FormGroup>
+                    <Button type="submit" disabled={isSubmittingBid || product.hasPendingBid}>
+                      {isSubmittingBid ? 'Submitting...' : 'Submit Bid'}
+                    </Button>
+                  </BidForm>
+                  
+                  {product.bids && product.bids.length > 0 && (
+                    <BidHistory>
+                      <h3 style={{ color: '#000000' }}>Bid History</h3>
+                      {product.bids.map(bid => (
+                        <BidItem key={bid.id}>
+                          <div>
+                            <BidAmount>${bid.amount}</BidAmount>
+                            <div style={{ color: '#000000' }}>by {bid.bidder}</div>
+                          </div>
+                          <BidTime>{bid.time}</BidTime>
+                          {bid.status !== 'pending' && (
+                            <span style={{ 
+                              color: bid.status === 'accepted' ? 'green' : 'red',
+                              fontWeight: 'bold'
+                            }}>
+                              {bid.status.toUpperCase()}
+                            </span>
+                          )}
+                        </BidItem>
+                      ))}
+                    </BidHistory>
+                  )}
+                </>
+              )}
+              
               <ActionButtons>
                 <PrimaryButton onClick={handleAddToCart} disabled={isAddingToCart}>
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -641,6 +935,21 @@ const ProductDetailPage: React.FC = () => {
             </ProductDetails>
           </ProductGrid>
         </Main>
+        
+        {showBidSuccess && (
+          <PopupOverlay>
+            <PopupContent>
+              <CloseButton onClick={handleClosePopup}>×</CloseButton>
+              <PopupTitle>Success!</PopupTitle>
+              <PopupMessage>
+                The bid has been sent to the seller who will review it.
+              </PopupMessage>
+              <PopupButton onClick={handleGoToMarketplace}>
+                Back to {sessionStorage.getItem('school') || 'HuskyMart'}'s Main Page
+              </PopupButton>
+            </PopupContent>
+          </PopupOverlay>
+        )}
       </Container>
     </ThemeProvider>
   );

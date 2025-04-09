@@ -363,6 +363,149 @@ const CartButton = styled(motion.button)`
   }
 `;
 
+// New styled components for analytics
+const AnalyticsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+`;
+
+const AnalyticsCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+const AnalyticsValue = styled.h3`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${props => props.theme.colors.primary};
+  margin: 0.5rem 0;
+`;
+
+const AnalyticsLabel = styled.p`
+  color: ${props => props.theme.colors.lightText};
+  margin: 0;
+`;
+
+const ChartContainer = styled.div`
+  width: 100%;
+  height: 400px;
+  margin-top: 2rem;
+  color: #000000;
+`;
+
+const YearSelector = styled.select`
+  padding: 0.5rem;
+  border: 1px solid ${props => props.theme.colors.border};
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  background-color: white;
+  color: #000000;
+`;
+
+const TransactionList = styled.div`
+  margin-top: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  color: #000000;
+`;
+
+const TransactionItem = styled.div`
+  padding: 0.75rem;
+  border-bottom: 1px solid ${props => props.theme.colors.border};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #000000;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const HistoryTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  
+  th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid ${props => props.theme.colors.border};
+  }
+  
+  th {
+    font-weight: 600;
+    background-color: ${props => props.theme.colors.primaryLight};
+  }
+  
+  tr:hover {
+    background-color: ${props => props.theme.colors.primaryLight};
+  }
+`;
+
+const StatusBadge = styled.span<{ status: string }>`
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: ${props => {
+    switch (props.status) {
+      case 'completed': return '#28a745';
+      case 'pending': return '#ffc107';
+      case 'cancelled': return '#dc3545';
+      default: return '#6c757d';
+    }
+  }};
+  color: white;
+`;
+
+interface MonthlyData {
+  January: number;
+  February: number;
+  March: number;
+  April: number;
+  May: number;
+  June: number;
+  July: number;
+  August: number;
+  September: number;
+  October: number;
+  November: number;
+  December: number;
+}
+
+interface DailyData {
+  [day: string]: number;
+}
+
+interface MonthlyDailyData {
+  [month: string]: DailyData;
+}
+
+interface YearlyData {
+  [year: number]: MonthlyData;
+}
+
+interface YearlyDailyData {
+  [year: number]: MonthlyDailyData;
+}
+
+interface Transaction {
+  date: string;
+  amount: number;
+}
+
 // Main component
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -370,6 +513,202 @@ const SettingsPage: React.FC = () => {
   const [userEmail, setUserEmail] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [chartData, setChartData] = useState<any>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  
+  // Mock data for analytics
+  const [analytics, setAnalytics] = useState({
+    totalSales: 1250,
+    dailyProfit: 250,
+    activeUsers: 150,
+    pendingOrders: 12
+  });
+  
+  // Mock data for monthly sales
+  const monthlySalesData: YearlyData = {
+    2024: {
+      January: 1200,
+      February: 1500,
+      March: 1800,
+      April: 2000,
+      May: 2200,
+      June: 2500,
+      July: 2300,
+      August: 2100,
+      September: 1900,
+      October: 1700,
+      November: 1600,
+      December: 1400
+    },
+    2023: {
+      January: 1000,
+      February: 1300,
+      March: 1600,
+      April: 1800,
+      May: 2000,
+      June: 2200,
+      July: 2100,
+      August: 1900,
+      September: 1700,
+      October: 1500,
+      November: 1400,
+      December: 1200
+    },
+    2022: {
+      January: 800,
+      February: 1100,
+      March: 1400,
+      April: 1600,
+      May: 1800,
+      June: 2000,
+      July: 1900,
+      August: 1700,
+      September: 1500,
+      October: 1300,
+      November: 1200,
+      December: 1000
+    },
+    2021: {
+      January: 600,
+      February: 900,
+      March: 1200,
+      April: 1400,
+      May: 1600,
+      June: 1800,
+      July: 1700,
+      August: 1500,
+      September: 1300,
+      October: 1100,
+      November: 1000,
+      December: 800
+    },
+    2020: {
+      January: 400,
+      February: 700,
+      March: 1000,
+      April: 1200,
+      May: 1400,
+      June: 1600,
+      July: 1500,
+      August: 1300,
+      September: 1100,
+      October: 900,
+      November: 800,
+      December: 600
+    }
+  };
+  
+  // Mock data for daily profit
+  const dailyProfitData: YearlyDailyData = {
+    2024: {
+      March: {
+        "1": 50,
+        "2": 75,
+        "3": 60,
+        "4": 80,
+        "5": 90
+      }
+    },
+    2023: {
+      March: {
+        "1": 40,
+        "2": 65,
+        "3": 50,
+        "4": 70,
+        "5": 80
+      }
+    },
+    2022: {
+      March: {
+        "1": 30,
+        "2": 55,
+        "3": 40,
+        "4": 60,
+        "5": 70
+      }
+    },
+    2021: {
+      March: {
+        "1": 20,
+        "2": 45,
+        "3": 30,
+        "4": 50,
+        "5": 60
+      }
+    },
+    2020: {
+      March: {
+        "1": 10,
+        "2": 35,
+        "3": 20,
+        "4": 40,
+        "5": 50
+      }
+    }
+  };
+  
+  // Mock data for active users
+  const activeUsersData: YearlyDailyData = {
+    2024: {
+      March: {
+        "1": 120,
+        "2": 150,
+        "3": 180,
+        "4": 200,
+        "5": 220
+      }
+    },
+    2023: {
+      March: {
+        "1": 100,
+        "2": 130,
+        "3": 160,
+        "4": 180,
+        "5": 200
+      }
+    },
+    2022: {
+      March: {
+        "1": 80,
+        "2": 110,
+        "3": 140,
+        "4": 160,
+        "5": 180
+      }
+    },
+    2021: {
+      March: {
+        "1": 60,
+        "2": 90,
+        "3": 120,
+        "4": 140,
+        "5": 160
+      }
+    },
+    2020: {
+      March: {
+        "1": 40,
+        "2": 70,
+        "3": 100,
+        "4": 120,
+        "5": 140
+      }
+    }
+  };
+  
+  // Mock data for purchase history
+  const [purchaseHistory, setPurchaseHistory] = useState([
+    { id: 1, item: 'Textbook for CS2800', price: 49.99, date: '2024-03-15', status: 'completed' },
+    { id: 2, item: 'iPhone 14 Pro Max', price: 899.99, date: '2024-03-10', status: 'pending' }
+  ]);
+  
+  // Mock data for selling history
+  const [sellingHistory, setSellingHistory] = useState([
+    { id: 1, item: 'MacBook Pro', price: 1200, date: '2024-03-14', status: 'completed' },
+    { id: 2, item: 'Calculus Textbook', price: 35, date: '2024-03-12', status: 'pending' }
+  ]);
   
   // Placeholder user data for admin section
   const [users, setUsers] = useState([
@@ -484,6 +823,56 @@ const SettingsPage: React.FC = () => {
     }
   };
   
+  const handleMetricClick = (metric: string) => {
+    setSelectedMetric(metric);
+    
+    // In a real app, this would be an API call
+    switch (metric) {
+      case 'totalSales':
+        if (monthlySalesData[selectedYear]) {
+          setChartData({
+            labels: Object.keys(monthlySalesData[selectedYear]),
+            datasets: [{
+              label: 'Monthly Sales',
+              data: Object.values(monthlySalesData[selectedYear]),
+              backgroundColor: 'rgba(212, 27, 44, 0.2)',
+              borderColor: 'rgba(212, 27, 44, 1)',
+              borderWidth: 1
+            }]
+          });
+        }
+        break;
+      case 'dailyProfit':
+        if (dailyProfitData[selectedYear]?.March) {
+          setChartData({
+            labels: Object.keys(dailyProfitData[selectedYear].March),
+            datasets: [{
+              label: 'Daily Profit',
+              data: Object.values(dailyProfitData[selectedYear].March),
+              backgroundColor: 'rgba(0, 191, 179, 0.2)',
+              borderColor: 'rgba(0, 191, 179, 1)',
+              borderWidth: 1
+            }]
+          });
+        }
+        break;
+      case 'activeUsers':
+        if (activeUsersData[selectedYear]?.March) {
+          setChartData({
+            labels: Object.keys(activeUsersData[selectedYear].March),
+            datasets: [{
+              label: 'Active Users',
+              data: Object.values(activeUsersData[selectedYear].March),
+              backgroundColor: 'rgba(255, 193, 7, 0.2)',
+              borderColor: 'rgba(255, 193, 7, 1)',
+              borderWidth: 1
+            }]
+          });
+        }
+        break;
+    }
+  };
+  
   // Render helpers
   const renderPrivacySettings = () => {
     return (
@@ -591,6 +980,130 @@ const SettingsPage: React.FC = () => {
     );
   };
   
+  const renderAnalyticsDashboard = () => {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Analytics Dashboard</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <AnalyticsGrid>
+            <AnalyticsCard onClick={() => handleMetricClick('totalSales')}>
+              <AnalyticsLabel>Total Sales (This Month)</AnalyticsLabel>
+              <AnalyticsValue>${analytics.totalSales}</AnalyticsValue>
+            </AnalyticsCard>
+            <AnalyticsCard onClick={() => handleMetricClick('dailyProfit')}>
+              <AnalyticsLabel>Daily Profit</AnalyticsLabel>
+              <AnalyticsValue>${analytics.dailyProfit}</AnalyticsValue>
+            </AnalyticsCard>
+            <AnalyticsCard onClick={() => handleMetricClick('activeUsers')}>
+              <AnalyticsLabel>Active Users</AnalyticsLabel>
+              <AnalyticsValue>{analytics.activeUsers}</AnalyticsValue>
+            </AnalyticsCard>
+            <AnalyticsCard>
+              <AnalyticsLabel>Pending Orders</AnalyticsLabel>
+              <AnalyticsValue>{analytics.pendingOrders}</AnalyticsValue>
+            </AnalyticsCard>
+          </AnalyticsGrid>
+          
+          {selectedMetric && (
+            <>
+              <YearSelector
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                <option value={2025}>2025</option>
+              </YearSelector>
+              
+              <ChartContainer>
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#000000' }}>
+                  <h3>Chart Placeholder</h3>
+                  <p>This would show the {selectedMetric} data for {selectedYear}</p>
+                </div>
+              </ChartContainer>
+              
+              {selectedMetric === 'totalSales' && (
+                <TransactionList>
+                  <h4>Recent Transactions</h4>
+                  {transactions.map((transaction, index) => (
+                    <TransactionItem key={index}>
+                      <span>{transaction.date}</span>
+                      <span>${transaction.amount}</span>
+                    </TransactionItem>
+                  ))}
+                </TransactionList>
+              )}
+            </>
+          )}
+        </CardBody>
+      </Card>
+    );
+  };
+  
+  const renderPurchaseHistory = () => {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Purchase History</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <HistoryTable>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchaseHistory.map(item => (
+                <tr key={item.id}>
+                  <td>{item.item}</td>
+                  <td>${item.price}</td>
+                  <td>{item.date}</td>
+                  <td><StatusBadge status={item.status}>{item.status}</StatusBadge></td>
+                </tr>
+              ))}
+            </tbody>
+          </HistoryTable>
+        </CardBody>
+      </Card>
+    );
+  };
+  
+  const renderSellingHistory = () => {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Selling History</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <HistoryTable>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sellingHistory.map(item => (
+                <tr key={item.id}>
+                  <td>{item.item}</td>
+                  <td>${item.price}</td>
+                  <td>{item.date}</td>
+                  <td><StatusBadge status={item.status}>{item.status}</StatusBadge></td>
+                </tr>
+              ))}
+            </tbody>
+          </HistoryTable>
+        </CardBody>
+      </Card>
+    );
+  };
+  
   return (
     <Container>
       <Header>
@@ -611,8 +1124,37 @@ const SettingsPage: React.FC = () => {
               </button>
             </SidebarMenuItem>
             
+            {!isAdmin && (
+              <>
+                <SidebarMenuItem active={activeSection === 'purchases'}>
+                  <button onClick={() => setActiveSection('purchases')}>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                    </svg>
+                    Purchase History
+                  </button>
+                </SidebarMenuItem>
+                <SidebarMenuItem active={activeSection === 'sales'}>
+                  <button onClick={() => setActiveSection('sales')}>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+                    </svg>
+                    Selling History
+                  </button>
+                </SidebarMenuItem>
+              </>
+            )}
+            
             {isAdmin && (
               <>
+                <SidebarMenuItem active={activeSection === 'analytics'}>
+                  <button onClick={() => setActiveSection('analytics')}>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+                    </svg>
+                    Analytics
+                  </button>
+                </SidebarMenuItem>
                 <SidebarMenuItem active={activeSection === 'users'}>
                   <button onClick={() => setActiveSection('users')}>
                     <svg viewBox="0 0 24 24">
@@ -636,8 +1178,11 @@ const SettingsPage: React.FC = () => {
         
         <Content>
           {activeSection === 'privacy' && renderPrivacySettings()}
+          {isAdmin && activeSection === 'analytics' && renderAnalyticsDashboard()}
           {isAdmin && activeSection === 'users' && renderAdminUserControls()}
           {isAdmin && activeSection === 'reports' && renderReportManagement()}
+          {!isAdmin && activeSection === 'purchases' && renderPurchaseHistory()}
+          {!isAdmin && activeSection === 'sales' && renderSellingHistory()}
         </Content>
       </Main>
     </Container>

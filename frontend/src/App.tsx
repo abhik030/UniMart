@@ -19,6 +19,8 @@ import VerifyPage from './pages/VerifyPage';
 import SettingsPage from './pages/SettingsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ShoppingCartPage from './pages/ShoppingCartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import BidManagementPage from './pages/BidManagementPage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -114,6 +116,14 @@ const App: React.FC = () => {
               } 
             />
             <Route 
+              path="/bids" 
+              element={
+                <ProtectedRoute>
+                  <BidManagementPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/messages" 
               element={
                 <ProtectedRoute>
@@ -125,6 +135,7 @@ const App: React.FC = () => {
             <Route path="/product/:productId" element={<ProductDetailPage />} />
             <Route path="/shopping-cart" element={<ShoppingCartPage />} />
             <Route path="/cart" element={<Navigate to="/shopping-cart" replace />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppContainer>
