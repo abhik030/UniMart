@@ -137,7 +137,7 @@ const EmailVerificationPage: React.FC = () => {
         </Form>
         
         <HelpText>
-          Please use your school email address to verify your account.
+           School emails only.
         </HelpText>
       </Card>
     </Container>

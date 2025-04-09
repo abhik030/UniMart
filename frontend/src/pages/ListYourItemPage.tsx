@@ -123,7 +123,7 @@ const HeaderTitle = styled.h1`
   margin: 0;
   color: white;
   
-  .uni {
+  .husky {
     color: white;
   }
   
@@ -163,6 +163,7 @@ const FormLabel = styled.label`
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
+  color: ${props => props.theme.colors.text};
 `;
 
 const FormGroup = styled.div`
@@ -182,11 +183,17 @@ const Select = styled.select`
   border-radius: 8px;
   font-size: 1rem;
   background-color: white;
+  color: ${props => props.theme.colors.text};
   
   &:focus {
     outline: none;
     border-color: ${props => props.theme.colors.primary};
     box-shadow: 0 0 0 2px ${props => props.theme.colors.primaryLight};
+  }
+  
+  option {
+    background-color: white;
+    color: ${props => props.theme.colors.text};
   }
 `;
 
@@ -296,13 +303,61 @@ const FooterText = styled.p`
   font-size: 0.9rem;
 `;
 
+const FilterCheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  color: ${props => props.theme.colors.text};
+  
+  &:hover {
+    color: ${props => props.theme.colors.primary};
+  }
+`;
+
+const FilterCheckbox = styled.input`
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  
+  &:checked {
+    accent-color: ${props => props.theme.colors.primary};
+  }
+`;
+
 interface AddItemForm {
   title: string;
   price: string;
   category: string;
+  subcategory: string;
   condition: string;
   description: string;
   images: File[];
+  // Category-specific fields
+  brand?: string;
+  model?: string;
+  size?: string;
+  color?: string;
+  gender?: string;
+  isbn?: string;
+  course_number?: string;
+  format?: string;
+  sublet_period?: string[];
+  num_rooms?: string;
+  num_bathrooms?: string;
+  bathroom_type?: string;
+  utilities_included?: boolean;
+  utilities_details?: string;
+}
+
+interface CategoryField {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'select' | 'multiselect' | 'checkbox';
+  required: boolean;
+  options?: { value: string; label: string }[];
 }
 
 const ListYourItemPage: React.FC = () => {
@@ -310,14 +365,163 @@ const ListYourItemPage: React.FC = () => {
     title: '',
     price: '',
     category: '',
+    subcategory: '',
     condition: 'New',
     description: '',
-    images: []
+    images: [],
+    sublet_period: []
   });
   
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  // Get subcategories based on selected category
+  const getSubcategories = () => {
+    switch (formData.category) {
+      case 'Academics':
+        return [
+          { value: 'physical', label: 'Physical Book' },
+          { value: 'ebook', label: 'E-Book' }
+        ];
+      case 'Electronics':
+        return [
+          { value: 'phones', label: 'Phones & Accessories' },
+          { value: 'laptops', label: 'Laptops & Computers' },
+          { value: 'headphones', label: 'Headphones & Audio' },
+          { value: 'tablets', label: 'Tablets & E-readers' },
+          { value: 'gaming', label: 'Gaming Equipment' },
+          { value: 'cameras', label: 'Cameras & Photography' },
+          { value: 'tvs', label: 'TVs & Monitors' },
+          { value: 'other_electronics', label: 'Other Electronics' }
+        ];
+      case 'Furniture':
+        return [
+          { value: 'chairs', label: 'Chairs' },
+          { value: 'desks', label: 'Desks' },
+          { value: 'tables', label: 'Tables' },
+          { value: 'sofas', label: 'Sofas & Couches' },
+          { value: 'beds', label: 'Beds & Mattresses' },
+          { value: 'shelves', label: 'Shelves & Storage' },
+          { value: 'dining', label: 'Dining Furniture' },
+          { value: 'other_furniture', label: 'Other Furniture' }
+        ];
+      case 'Apparel':
+        return [
+          { value: 'shirts', label: 'Shirts & Tops' },
+          { value: 'pants', label: 'Pants & Bottoms' },
+          { value: 'dresses', label: 'Dresses & Skirts' },
+          { value: 'outerwear', label: 'Jackets & Outerwear' },
+          { value: 'footwear', label: 'Shoes & Footwear' },
+          { value: 'accessories', label: 'Accessories' },
+          { value: 'formal', label: 'Formal Wear' },
+          { value: 'athletic', label: 'Athletic Wear' },
+          { value: 'other_apparel', label: 'Other Apparel' }
+        ];
+      case 'Transportation':
+        return [
+          { value: 'bikes', label: 'Bicycles' },
+          { value: 'scooters', label: 'Scooters' },
+          { value: 'skateboards', label: 'Skateboards' },
+          { value: 'skates', label: 'Skates & Rollerblades' },
+          { value: 'car_accessories', label: 'Car Accessories' },
+          { value: 'other_transportation', label: 'Other Transportation' }
+        ];
+      case 'Housing':
+        return [
+          { value: 'apartment', label: 'Apartment' },
+          { value: 'house', label: 'House' },
+          { value: 'room', label: 'Room' },
+          { value: 'studio', label: 'Studio' }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Get category-specific fields
+  const getCategorySpecificFields = (): CategoryField[] => {
+    switch (formData.category) {
+      case 'Academics':
+        return [
+          { name: 'isbn', label: 'ISBN', type: 'text' as const, required: false },
+          { 
+            name: 'course_number', 
+            label: 'Course Number', 
+            type: 'text' as const, 
+            required: false 
+          },
+          ...(formData.subcategory === 'physical' ? [
+            { 
+              name: 'format', 
+              label: 'Format', 
+              type: 'select' as const, 
+              required: false,
+              options: [
+                { value: 'hardcover', label: 'Hardcover' },
+                { value: 'paperback', label: 'Paperback' },
+                { value: 'spiral', label: 'Spiral-bound' },
+                { value: 'looseleaf', label: 'Loose-leaf' }
+              ]
+            }
+          ] : [])
+        ];
+      case 'Electronics':
+        return [
+          { name: 'brand', label: 'Brand', type: 'text' as const, required: true },
+          { name: 'model', label: 'Model', type: 'text' as const, required: false }
+        ];
+      case 'Apparel':
+        return [
+          { 
+            name: 'gender', 
+            label: 'Gender', 
+            type: 'select' as const, 
+            required: true,
+            options: [
+              { value: 'male', label: 'Male' },
+              { value: 'female', label: 'Female' },
+              { value: 'unisex', label: 'Unisex' }
+            ]
+          },
+          { name: 'size', label: 'Size', type: 'text' as const, required: true },
+          { name: 'color', label: 'Color', type: 'text' as const, required: false },
+          { name: 'brand', label: 'Brand', type: 'text' as const, required: false }
+        ];
+      case 'Housing':
+        return [
+          { 
+            name: 'sublet_period', 
+            label: 'Sublet Period', 
+            type: 'multiselect' as const, 
+            required: true,
+            options: [
+              { value: 'fall', label: 'Fall Semester' },
+              { value: 'spring', label: 'Spring Semester' },
+              { value: 'summer1', label: 'Summer 1' },
+              { value: 'summer2', label: 'Summer 2' },
+              { value: 'full_year', label: 'Full Year' }
+            ]
+          },
+          { name: 'num_rooms', label: 'Number of Rooms', type: 'number' as const, required: true },
+          { name: 'num_bathrooms', label: 'Number of Bathrooms', type: 'number' as const, required: true },
+          { 
+            name: 'bathroom_type', 
+            label: 'Bathroom Type', 
+            type: 'select' as const, 
+            required: true,
+            options: [
+              { value: 'private', label: 'Private' },
+              { value: 'shared', label: 'Shared' }
+            ]
+          },
+          { name: 'utilities_included', label: 'Utilities Included', type: 'checkbox' as const, required: true },
+          { name: 'utilities_details', label: 'Utilities Details', type: 'text' as const, required: false }
+        ];
+      default:
+        return [];
+    }
+  };
 
   useEffect(() => {
     // Check if user is authenticated
@@ -328,13 +532,42 @@ const ListYourItemPage: React.FC = () => {
     }
   }, [navigate]);
 
+  // Reset subcategory when category changes
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, subcategory: '' }));
+  }, [formData.category]);
+
   const handleLogoClick = () => {
-    navigate('/');
+    navigate('/huskymart');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+
+  const handleMultiselectChange = (name: string, value: string) => {
+    setFormData(prev => {
+      const currentValues = prev[name as keyof AddItemForm] as string[] || [];
+      
+      // Toggle the value
+      if (currentValues.includes(value)) {
+        return { 
+          ...prev, 
+          [name]: currentValues.filter(v => v !== value) 
+        };
+      } else {
+        return { 
+          ...prev, 
+          [name]: [...currentValues, value] 
+        };
+      }
+    });
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -387,6 +620,113 @@ const ListYourItemPage: React.FC = () => {
     navigate('/huskymart');
   };
 
+  // Render a specific field based on its type
+  const renderField = (field: CategoryField) => {
+    switch (field.type) {
+      case 'text':
+        return (
+          <FormRow key={field.name}>
+            <FormLabel htmlFor={field.name}>
+              {field.label} {field.required && <span style={{ color: 'red' }}>*</span>}
+              {field.name === 'course_number' && (
+                <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: '#666' }}>
+                  (Don't add a space between the department and class number. Ex. CS1200)
+                </span>
+              )}
+            </FormLabel>
+            <Input
+              id={field.name}
+              name={field.name}
+              value={formData[field.name as keyof AddItemForm] as string || ''}
+              onChange={handleInputChange}
+              required={field.required}
+            />
+          </FormRow>
+        );
+        
+      case 'number':
+        return (
+          <FormRow key={field.name}>
+            <FormLabel htmlFor={field.name}>
+              {field.label} {field.required && <span style={{ color: 'red' }}>*</span>}
+            </FormLabel>
+            <Input
+              id={field.name}
+              name={field.name}
+              type="number"
+              min="0"
+              value={formData[field.name as keyof AddItemForm] as string || ''}
+              onChange={handleInputChange}
+              required={field.required}
+            />
+          </FormRow>
+        );
+        
+      case 'select':
+        return (
+          <FormRow key={field.name}>
+            <FormLabel htmlFor={field.name}>
+              {field.label} {field.required && <span style={{ color: 'red' }}>*</span>}
+            </FormLabel>
+            <Select
+              id={field.name}
+              name={field.name}
+              value={formData[field.name as keyof AddItemForm] as string || ''}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="" disabled>Select {field.label}</option>
+              {field.options?.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </Select>
+          </FormRow>
+        );
+        
+      case 'multiselect':
+        return (
+          <FormRow key={field.name}>
+            <FormLabel>
+              {field.label} {field.required && <span style={{ color: 'red' }}>*</span>}
+            </FormLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {field.options?.map(option => {
+                const values = formData[field.name as keyof AddItemForm] as string[] || [];
+                return (
+                  <FilterCheckboxLabel key={option.value}>
+                    <FilterCheckbox
+                      type="checkbox"
+                      checked={values.includes(option.value)}
+                      onChange={() => handleMultiselectChange(field.name, option.value)}
+                    />
+                    {option.label}
+                  </FilterCheckboxLabel>
+                );
+              })}
+            </div>
+          </FormRow>
+        );
+        
+      case 'checkbox':
+        return (
+          <FormRow key={field.name}>
+            <FilterCheckboxLabel>
+              <FilterCheckbox
+                type="checkbox"
+                name={field.name}
+                checked={!!formData[field.name as keyof AddItemForm]}
+                onChange={handleCheckboxChange}
+              />
+              {field.label} {field.required && <span style={{ color: 'red' }}>*</span>}
+            </FilterCheckboxLabel>
+          </FormRow>
+        );
+        
+      default:
+        return null;
+    }
+  };
+
   return (
     <ThemeProvider theme={huskyTheme}>
       <Container>
@@ -395,8 +735,8 @@ const ListYourItemPage: React.FC = () => {
             <CartIcon viewBox="0 0 24 24">
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
             </CartIcon>
-            <CartTooltip>Back to homepage</CartTooltip>
-            <HeaderTitle><span className="uni">Uni</span><span className="mart">Mart</span></HeaderTitle>
+            <CartTooltip>UniMart Home</CartTooltip>
+            <HeaderTitle onClick={() => navigate('/huskymart')}><span className="husky">Husky</span><span className="mart">Mart</span></HeaderTitle>
           </LogoContainer>
         </Header>
         
@@ -406,7 +746,7 @@ const ListYourItemPage: React.FC = () => {
           <FormContainer>
             <form onSubmit={handleSubmitItem}>
               <FormRow>
-                <FormLabel htmlFor="title">Item Title</FormLabel>
+                <FormLabel htmlFor="title">Item Title <span style={{ color: 'red' }}>*</span></FormLabel>
                 <Input
                   id="title"
                   name="title"
@@ -419,7 +759,7 @@ const ListYourItemPage: React.FC = () => {
               
               <FormGroup>
                 <FormRow>
-                  <FormLabel htmlFor="price">Price ($)</FormLabel>
+                  <FormLabel htmlFor="price">Price ($) <span style={{ color: 'red' }}>*</span></FormLabel>
                   <Input
                     id="price"
                     name="price"
@@ -437,7 +777,7 @@ const ListYourItemPage: React.FC = () => {
                 </FormRow>
                 
                 <FormRow>
-                  <FormLabel htmlFor="category">Category</FormLabel>
+                  <FormLabel htmlFor="category">Category <span style={{ color: 'red' }}>*</span></FormLabel>
                   <Select
                     id="category"
                     name="category"
@@ -458,8 +798,28 @@ const ListYourItemPage: React.FC = () => {
                 </FormRow>
               </FormGroup>
               
+              {formData.category && getSubcategories().length > 0 && (
+                <FormRow>
+                  <FormLabel htmlFor="subcategory">Subcategory <span style={{ color: 'red' }}>*</span></FormLabel>
+                  <Select
+                    id="subcategory"
+                    name="subcategory"
+                    value={formData.subcategory}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="" disabled>Select a subcategory</option>
+                    {getSubcategories().map(subcategory => (
+                      <option key={subcategory.value} value={subcategory.value}>
+                        {subcategory.label}
+                      </option>
+                    ))}
+                  </Select>
+                </FormRow>
+              )}
+              
               <FormRow>
-                <FormLabel htmlFor="condition">Condition</FormLabel>
+                <FormLabel htmlFor="condition">Condition <span style={{ color: 'red' }}>*</span></FormLabel>
                 <Select
                   id="condition"
                   name="condition"
@@ -473,9 +833,12 @@ const ListYourItemPage: React.FC = () => {
                   <option value="Poor">Poor</option>
                 </Select>
               </FormRow>
+
+              {/* Category-specific fields */}
+              {formData.category && getCategorySpecificFields().map(renderField)}
               
               <FormRow>
-                <FormLabel htmlFor="description">Description</FormLabel>
+                <FormLabel htmlFor="description">Description <span style={{ color: 'red' }}>*</span></FormLabel>
                 <TextArea
                   id="description"
                   name="description"
@@ -487,7 +850,7 @@ const ListYourItemPage: React.FC = () => {
               </FormRow>
               
               <FormRow>
-                <FormLabel>Photos</FormLabel>
+                <FormLabel>Photos <span style={{ color: 'red' }}>*</span></FormLabel>
                 <FileInput onClick={handleFileUploadClick}>
                   <input
                     type="file"

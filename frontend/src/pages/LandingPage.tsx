@@ -2,9 +2,15 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import Logo from '../components/Logo';
 import Button from '../components/Button';
-import uniMartPhoto from './PhotoForUniMart.jpg';
+import uniMartPhoto from '../assets/images/PhotoForUniMart.jpg';
+import backgroundImage from '../assets/images/unimartLandingPageBackground.jpg';
+import aboutUsPic from '../assets/images/AboutUsPic.JPG';
+import northeasternLogo from '../assets/images/northeasternlogo.webp';
+import rutgersLogo from '../assets/images/rutgersLogo.webp';
+import mitLogo from '../assets/images/mitlogo.png';
+import buLogo from '../assets/images/bulogo.png';
+import harvardLogo from '../assets/images/harvardlogo.png';
 
 const Container = styled.div`
   display: flex;
@@ -14,9 +20,26 @@ const Container = styled.div`
   min-height: 100vh;
   padding: 0;
   background-color: ${props => props.theme.colors.background};
+  background-image: url(${backgroundImage});
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${props => props.theme.colors.background};
+    opacity: 0.85;
+    z-index: 0;
+  }
 `;
 
 // New top bar styled like the image
@@ -249,16 +272,18 @@ const Title = styled(motion.h1)`
   font-size: 7rem;
   font-weight: 800;
   margin-bottom: 1rem;
-  color: ${props => props.theme.colors.primary};
+  color: white;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, ${props => props.theme.colors.primary}, #2dd4bf);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   font-family: 'Clash Display', sans-serif;
   text-transform: uppercase;
   transform: skew(-5deg);
-  text-shadow: 4px 4px 0px rgba(45, 212, 191, 0.1);
+  text-shadow: 4px 4px 0px rgba(45, 212, 191, 0.3);
+
+  span {
+    color: ${props => props.theme.colors.primary};
+    text-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
+  }
 
   @media (max-width: 768px) {
     font-size: 5rem;
@@ -282,7 +307,7 @@ const Slogan = styled(motion.h2)`
 const Subtitle = styled(motion.p)`
   font-size: 1.25rem;
   color: ${props => props.theme.colors.text};
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   line-height: 1.6;
   max-width: 600px;
   opacity: 0.8;
@@ -294,7 +319,8 @@ const ButtonContainer = styled(motion.div)`
   display: flex;
   justify-content: center;
   width: 100%;
-  margin-top: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const GetStartedButton = styled(Button)`
@@ -575,6 +601,95 @@ const PlaceholderIcon = styled.div`
   }
 `;
 
+const SideBanner = styled.div<{ left?: boolean }>`
+  position: fixed;
+  ${props => props.left ? 'left: 0;' : 'right: 0;'}
+  top: 50%;
+  transform: translateY(-50%) ${props => props.left ? 'rotate(-90deg) translateY(-100%)' : 'rotate(90deg) translateY(-100%)'};
+  transform-origin: ${props => props.left ? 'left top' : 'right top'};
+  background: linear-gradient(90deg, ${props => props.theme.colors.primary}, rgba(45, 212, 191, 0.8));
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  font-family: 'Clash Display', sans-serif;
+  text-transform: uppercase;
+`;
+
+const CollegeLogoCarousel = styled.div`
+  width: 100%;
+  max-width: 500px;
+  margin: 2rem auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+`;
+
+const LogoContainer = styled.div`
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const LogoScroller = styled.div`
+  display: flex;
+  position: absolute;
+  animation: scrollLogos 20s linear infinite;
+  width: max-content;
+
+  @keyframes scrollLogos {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+`;
+
+const CollegeLogo = styled.div`
+  width: 80px;
+  height: 60px;
+  margin: 0 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 8px;
+
+  img {
+    max-width: 100%;
+    max-height: 50px;
+    object-fit: contain;
+  }
+`;
+
+const CarouselTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 10px;
+  text-align: center;
+  font-family: 'Clash Display', sans-serif;
+  
+  span {
+    color: ${props => props.theme.colors.primary};
+  }
+`;
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const homeRef = useRef<HTMLDivElement>(null);
@@ -655,8 +770,25 @@ const LandingPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const logos = [
+    { src: northeasternLogo, alt: "Northeastern University" },
+    { src: rutgersLogo, alt: "Rutgers University" },
+    { src: mitLogo, alt: "MIT" },
+    { src: buLogo, alt: "Boston University" },
+    { src: harvardLogo, alt: "Harvard University" },
+    // Duplicate logos for seamless scrolling
+    { src: northeasternLogo, alt: "Northeastern University" },
+    { src: rutgersLogo, alt: "Rutgers University" },
+    { src: mitLogo, alt: "MIT" },
+    { src: buLogo, alt: "Boston University" },
+    { src: harvardLogo, alt: "Harvard University" },
+  ];
+
   return (
     <Container>
+      <SideBanner left>For Students</SideBanner>
+      <SideBanner>By Students</SideBanner>
+      
       <TopBar>
         <NavContainer>
           <CartAnimation onClick={handleGetStarted}>
@@ -687,7 +819,7 @@ const LandingPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Welcome to UniMart
+          <span>W</span><span>elco</span><span>me to</span> Uni<span>Mart</span>
         </Title>
         
         <Slogan
@@ -715,6 +847,24 @@ const LandingPage: React.FC = () => {
         >
           <GetStartedButton onClick={handleGetStarted}>Get Started</GetStartedButton>
         </ButtonContainer>
+        
+        <CollegeLogoCarousel style={{ marginTop: '0.5rem' }}>
+          <CarouselTitle>Uni<span>Marts</span> Planned or Functional:</CarouselTitle>
+          <LogoContainer>
+            <LogoScroller>
+              {logos.map((logo, index) => (
+                <CollegeLogo key={index}>
+                  <img src={logo.src} alt={logo.alt} />
+                </CollegeLogo>
+              ))}
+              {logos.slice(0, 5).map((logo, index) => (
+                <CollegeLogo key={`duplicate-${index}`}>
+                  <img src={logo.src} alt={logo.alt} />
+                </CollegeLogo>
+              ))}
+            </LogoScroller>
+          </LogoContainer>
+        </CollegeLogoCarousel>
       </Content>
       
       <ScrollReveal
@@ -754,7 +904,7 @@ const LandingPage: React.FC = () => {
           </AboutTextContent>
           <AboutImageContainer>
             <img 
-              src="/AboutUsPic.JPG"
+              src={aboutUsPic}
               alt="That's me in the middle!"
             />
           </AboutImageContainer>

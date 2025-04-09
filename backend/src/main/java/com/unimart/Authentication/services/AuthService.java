@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.io.IOException;
+import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -358,10 +360,21 @@ public class AuthService {
         
         // Handle profile picture
         if (profilePicture != null && !profilePicture.isEmpty()) {
-            // In a real application, upload the file to a storage service and get a URL
-            // For now, we'll use a placeholder URL
-            String profilePictureUrl = "https://unimart.com/profile-pictures/" + System.currentTimeMillis() + "_" + profilePicture.getOriginalFilename();
-            profile.setProfileImageUrl(profilePictureUrl);
+            try {
+                // Convert image to Base64 encoded string
+                byte[] imageBytes = profilePicture.getBytes();
+                String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                @SuppressWarnings({ "null", "unused" })
+                String imageFormat = profilePicture.getContentType().split("/")[1]; // Get format (jpg, png, etc)
+                String dataURI = "data:" + profilePicture.getContentType() + ";base64," + base64Image;
+                
+                // Store the data URI in the database
+                profile.setProfileImageUrl(dataURI);
+                log.info("Profile picture stored as base64 data URI for user: {}", email);
+            } catch (IOException e) {
+                log.error("Failed to process profile picture for user: {}", email, e);
+                // Don't update the profile picture if there was an error
+            }
         }
         
         // Save the profile

@@ -68,10 +68,11 @@ const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 2rem;
+  padding: 0.6rem 2rem;
   background-color: ${props => props.theme.colors.headerBg};
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 `;
 
 const LogoContainer = styled.div`
@@ -98,7 +99,7 @@ const CartIcon = styled.svg`
 
 const CartTooltip = styled.div`
   position: absolute;
-  top: 100%;
+  top: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
   background-color: ${props => props.theme.colors.headerBg};
@@ -110,6 +111,7 @@ const CartTooltip = styled.div`
   pointer-events: none;
   transition: opacity 0.2s ease;
   white-space: nowrap;
+  z-index: 1000;
   
   ${CartIcon}:hover + & {
     opacity: 1;
@@ -117,7 +119,7 @@ const CartTooltip = styled.div`
 `;
 
 const HeaderTitle = styled.h1`
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
   color: white;
@@ -144,9 +146,12 @@ const HeaderTitle = styled.h1`
 `;
 
 const SearchContainer = styled.div`
-  flex-grow: 1;
-  margin: 0 2rem;
-  max-width: 500px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  max-width: 50%;
 `;
 
 const SearchBar = styled.div`
@@ -156,12 +161,13 @@ const SearchBar = styled.div`
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  padding: 0.75rem 1.5rem 0.75rem 2.5rem;
   border-radius: 20px;
   border: none;
   background-color: white;
   color: ${props => props.theme.colors.text};
-  font-size: 0.9rem;
+  font-size: 1.1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   
   &::placeholder {
     color: #999;
@@ -169,7 +175,8 @@ const SearchInput = styled.input`
   
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px ${props => props.theme.colors.teal};
+    box-shadow: 0 0 0 2px ${props => props.theme.colors.primary};
+    transform: scale(1.02);
   }
 `;
 
@@ -187,6 +194,7 @@ const HeaderActions = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
   position: relative;
 `;
 
@@ -280,33 +288,60 @@ const ListProductButton = styled(Button)`
 `;
 
 const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   position: relative;
-`;
-
-const UserName = styled.span`
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const ProfilePicture = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
   background-color: ${props => props.theme.colors.primaryLight};
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 2px solid white;
-  cursor: pointer;
-  position: relative;
-  
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+`;
+
+const ShoppingCartButton = styled(motion.button)`
+  position: fixed;
+  top: 5rem;
+  right: 2rem;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: ${props => props.theme.colors.primary};
+  border: none;
+  box-shadow: ${props => props.theme.shadows.medium};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+  }
+  
+  &:hover {
+    transform: scale(1.1);
   }
 `;
 
@@ -1061,6 +1096,28 @@ const PopularCategoriesGrid = styled.div`
   gap: 1rem;
 `;
 
+// Define CategoryIcon and CategoryName before CategoryCard
+const CategoryIcon = styled.div`
+  width: 60px;
+  height: 60px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 1.8rem;
+  transition: all 0.3s ease;
+`;
+
+const CategoryName = styled.div`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #000000;
+  transition: color 0.3s ease;
+`;
+
 // Add CategoryTooltip styled component
 const CategoryTooltip = styled.div`
   position: absolute;
@@ -1079,7 +1136,7 @@ const CategoryTooltip = styled.div`
   z-index: 100;
 `;
 
-// Update CategoryCard to include tooltip functionality
+// Update CategoryCard to have a more prominent hover effect and include tooltip functionality
 const CategoryCard = styled(motion.div)`
   background-color: white;
   border-radius: 10px;
@@ -1090,44 +1147,26 @@ const CategoryCard = styled(motion.div)`
   justify-content: center;
   cursor: pointer;
   box-shadow: ${props => props.theme.shadows.small};
-  transition: all 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
   position: relative;
   
   &:hover {
     transform: translateY(-5px);
-    box-shadow: ${props => props.theme.shadows.medium};
+    box-shadow: ${props => props.theme.shadows.large};
+    background-color: ${props => props.theme.colors.primaryLight};
+    
+    ${CategoryIcon} {
+      background-color: rgba(212, 27, 44, 0.1);
+    }
+    
+    ${CategoryName} {
+      color: ${props => props.theme.colors.primary};
+      font-weight: 600;
+    }
   }
 `;
 
-const CategoryIcon = styled.div`
-  width: 60px;
-  height: 60px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-  color: #333;
-`;
-
-const CategoryName = styled.div`
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #000000;
-`;
-
-// Define popular categories data
-const popularCategories = [
-  { id: 1, name: 'Textbooks', icon: '📚' },
-  { id: 2, name: 'Electronics', icon: '💻' },
-  { id: 3, name: 'Furniture', icon: '🪑' },
-  { id: 4, name: 'Apparel', icon: '👕' },
-  { id: 5, name: 'Tickets', icon: '🎟️' },
-  { id: 6, name: 'Transportation', icon: '🚲' },
-  { id: 7, name: 'Free Items', icon: '🎁' },
-  { id: 8, name: 'Housing', icon: '🏠' },
-];
+// Delete the duplicate CategoryIcon and CategoryName components that appear after CategoryCard
 
 // Add a new array for looking for items
 const lookingForItems = [
@@ -1468,6 +1507,18 @@ const ContactForm = styled.form`
   gap: 1rem;
 `;
 
+// Define popular categories data
+const popularCategories = [
+  { id: 1, name: 'Textbooks', icon: '📚' },
+  { id: 2, name: 'Electronics', icon: '💻' },
+  { id: 3, name: 'Furniture', icon: '🪑' },
+  { id: 4, name: 'Apparel', icon: '👕' },
+  { id: 5, name: 'Tickets', icon: '🎟️' },
+  { id: 6, name: 'Transportation', icon: '🚲' },
+  { id: 7, name: 'Free Items', icon: '🎁' },
+  { id: 8, name: 'Housing', icon: '🏠' },
+];
+
 const HuskyMartPage: React.FC = () => {
   // State declarations for contact modal
   const [showContactModal, setShowContactModal] = useState(false);
@@ -1548,7 +1599,8 @@ const HuskyMartPage: React.FC = () => {
   
   // Add navigation handlers
   const handleLogoClick = () => {
-    // Do nothing - we're already on the homepage
+    // Navigate to HuskyMart homepage
+    navigate('/huskymart');
   };
 
   const handleUpdateProfile = () => {
@@ -1628,32 +1680,65 @@ const HuskyMartPage: React.FC = () => {
   // Category handlers
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
+    // Navigate to the category-specific page
+    navigate(`/huskymart/category/${category.toLowerCase().replace(/\s+/g, '-')}`);
   };
   
-  const handleCartClick = () => {
-    // Redirect to UniMart homepage
-    navigate('/');
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/shopping-cart');
+  };
+
+  const handleNotificationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleNotifications();
   };
   
   // Update useEffect to load the profile picture when the component mounts
   useEffect(() => {
-    // Load profile picture URL from localStorage if available
+    // Load profile data from localStorage
     const storedProfilePic = localStorage.getItem('profilePictureUrl');
+    const storedFirstName = localStorage.getItem('firstName');
+    const storedLastName = localStorage.getItem('lastName');
+    const storedUniversityName = localStorage.getItem('universityName');
+    
     if (storedProfilePic) {
       setProfilePictureUrl(storedProfilePic);
     }
+    
+    if (storedFirstName) {
+      setFirstName(storedFirstName);
+    }
+    
+    if (storedLastName) {
+      setLastName(storedLastName);
+    }
+    
+    if (storedUniversityName) {
+      setUniversityName(storedUniversityName);
+    }
   }, []);
+  
+  const handleProductClick = (productId: number) => {
+    navigate(`/product/${productId}`);
+  };
   
   // Inside the return statement, update the notification section
   return (
     <ThemeProvider theme={huskyTheme}>
       <Container>
         <Header>
-          <LogoContainer>
-            <CartIcon viewBox="0 0 24 24" onClick={handleCartClick}>
+          <LogoContainer onClick={handleLogoClick}>
+            <CartIcon viewBox="0 0 24 24" onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate('/'); // Navigate to UniMart homepage
+            }}>
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
             </CartIcon>
-            <CartTooltip>UniMart Home</CartTooltip>
+            <CartTooltip>Back to UniMart</CartTooltip>
             <HeaderTitle><span className="husky">Husky</span><span className="mart">Mart</span></HeaderTitle>
           </LogoContainer>
           
@@ -1681,7 +1766,7 @@ const HuskyMartPage: React.FC = () => {
               <IconTooltip>Contact Us</IconTooltip>
             </IconButton>
             
-            <IconButton title="Notifications" onClick={toggleNotifications}>
+            <IconButton title="Notifications" onClick={handleNotificationClick}>
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
               </svg>
@@ -1694,34 +1779,17 @@ const HuskyMartPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
+                style={{ position: 'absolute', top: '100%', right: '0', zIndex: 1000 }}
               >
                 <NotificationHeader>Recent Notifications</NotificationHeader>
-                
-                {sampleNotifications.length === 0 ? (
-                  <NotificationEmptyMessage>
-                    Damn, looks like your notis are dry.
-                  </NotificationEmptyMessage>
-                ) : (
-                  <>
-                    {sampleNotifications.slice(0, 7).map(notification => (
-                      <NotificationItem key={notification.id}>
-                        <NotificationAvatar>
-                          {/* Placeholder for avatar image */}
-                        </NotificationAvatar>
-                        <NotificationContent>
-                          <NotificationTitle>{notification.user}</NotificationTitle>
-                          <NotificationMessage>{notification.message}</NotificationMessage>
-                          <NotificationTime>{notification.time}</NotificationTime>
-                        </NotificationContent>
-                      </NotificationItem>
-                    ))}
-                    <NotificationFooter>
-                      <SeeAllButton onClick={handleSeeAllNotifications}>
-                        See All Notifications
-                      </SeeAllButton>
-                    </NotificationFooter>
-                  </>
-                )}
+                <NotificationEmptyMessage>
+                  Damn, looks like your notis are dry.
+                </NotificationEmptyMessage>
+                <NotificationFooter>
+                  <SeeAllButton onClick={handleSeeAllNotifications}>
+                    See All Notifications
+                  </SeeAllButton>
+                </NotificationFooter>
               </NotificationDropdown>
             )}
             
@@ -1797,7 +1865,16 @@ const HuskyMartPage: React.FC = () => {
             </UserInfo>
           </HeaderActions>
         </Header>
-        
+
+        <ShoppingCartButton onClick={(e) => {
+          e.stopPropagation();
+          navigate('/shopping-cart');
+        }}>
+          <svg viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+        </ShoppingCartButton>
+
         <MainContent>
           {/* Hero Section with Campus Photo */}
           <HeroSection>
@@ -1847,9 +1924,9 @@ const HuskyMartPage: React.FC = () => {
                     <CategoryCard 
                       key={category.id} 
                       onClick={() => handleCategoryChange(category.name)}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
                     >
                       <CategoryIcon>{category.icon}</CategoryIcon>
                       <CategoryName>{category.name}</CategoryName>
@@ -1903,6 +1980,7 @@ const HuskyMartPage: React.FC = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: item.id * 0.05 }}
+                      onClick={() => handleProductClick(item.id)}
                     >
                       <ProductImage>
                         {item.id === 2 && <ProductBadge>New</ProductBadge>}

@@ -21,5 +21,8 @@ EXPOSE 5005
 # Set Spring profiles to dev for hot reloading
 ENV SPRING_PROFILES_ACTIVE=dev
 
-# Run Spring Boot with development profile and DevTools
-CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.profiles=dev", "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"] 
+# First compile the application
+RUN mvn clean package -DskipTests
+
+# Run the Spring Boot app with the compiled jar
+CMD ["java", "-jar", "-Dspring-boot.run.profiles=dev", "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "target/backend-0.0.1-SNAPSHOT.jar"] 

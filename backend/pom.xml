@@ -18,6 +18,7 @@
 
     <properties>
         <java.version>21</java.version>
+        <start-class>com.unimart.backend.BackendApplication</start-class>
     </properties>
 
     <dependencies>
@@ -128,6 +129,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
             <configuration>
+                <mainClass>com.unimart.backend.BackendApplication</mainClass>
                 <excludes>
                     <exclude>
                         <groupId>org.projectlombok</groupId>
@@ -140,3 +142,5 @@
 </build>
 
 </project>
+
+

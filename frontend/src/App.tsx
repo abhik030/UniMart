@@ -10,9 +10,15 @@ import HuskyMartPage from './pages/HuskyMartPage';
 import EmailTestPage from './pages/EmailTestPage';
 import ListYourItemPage from './pages/ListYourItemPage';
 import MessagesPage from './pages/MessagesPage';
+import CategoryPage from './pages/categories/CategoryPage';
 import GlobalStyle from './styles/GlobalStyle';
 import theme from './theme';
 import { authService } from './services/api';
+import LoginPage from './pages/LoginPage';
+import VerifyPage from './pages/VerifyPage';
+import SettingsPage from './pages/SettingsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import ShoppingCartPage from './pages/ShoppingCartPage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -61,8 +67,9 @@ const App: React.FC = () => {
         <AppContainer>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/verify" element={<VerifyPage />} />
             <Route path="/verify-email" element={<EmailVerificationPage />} />
-            <Route path="/verify" element={<VerificationPage />} />
             <Route path="/unsupported" element={<UnsupportedSchoolPage />} />
             <Route path="/email-test" element={<EmailTestPage />} />
             <Route 
@@ -78,6 +85,14 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <HuskyMartPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/huskymart/category/:category" 
+              element={
+                <ProtectedRoute>
+                  <CategoryPage />
                 </ProtectedRoute>
               } 
             />
@@ -106,6 +121,10 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               } 
             />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/product/:productId" element={<ProductDetailPage />} />
+            <Route path="/shopping-cart" element={<ShoppingCartPage />} />
+            <Route path="/cart" element={<Navigate to="/shopping-cart" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppContainer>

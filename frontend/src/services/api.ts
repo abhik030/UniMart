@@ -98,41 +98,67 @@ export const authService = {
   },
   
   setupProfile: async (profileData: ProfileSetupRequest, email: string): Promise<ProfileSetupResponse> => {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('firstName', profileData.firstName);
+    formData.append('lastName', profileData.lastName);
+    formData.append('phoneNumber', profileData.phoneNumber);
+    
+    if (profileData.description) {
+      formData.append('description', profileData.description);
+    }
+    
+    if (profileData.profilePicture && profileData.profilePicture instanceof File) {
+      formData.append('profilePicture', profileData.profilePicture);
+    }
+    
     try {
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('firstName', profileData.firstName);
-      formData.append('lastName', profileData.lastName);
-      formData.append('phoneNumber', profileData.phoneNumber);
-      
-      if (profileData.description) {
-        formData.append('description', profileData.description);
-      }
-      
-      if (profileData.profilePicture) {
-        formData.append('profilePicture', profileData.profilePicture);
-      }
-      
       const response = await fetch(`${API_URL}/auth/profile-setup`, {
         method: 'POST',
         body: formData,
+        // Don't set Content-Type header as it will be set automatically with correct boundary for multipart/form-data
         headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token') || ''}`
         }
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to set up profile');
+        throw new Error(errorData.message || `Failed to set up profile (${response.status})`);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log('Profile setup successful:', data);
+      return data;
     } catch (error: any) {
       console.error("Error setting up profile:", error);
       
-      // Temporary fallback until backend endpoint is ready
-      console.warn("Using temporary mock profile setup until backend is ready");
-      return mockSetupProfileFallback(profileData, email);
+      // If we can't connect to the backend, create a fallback with a data URL
+      if (profileData.profilePicture && profileData.profilePicture instanceof File) {
+        try {
+          const dataUrl = await convertFileToDataURL(profileData.profilePicture);
+          const domain = email.split('@')[1] || '';
+          const universityNamePart = domain.split('.')[0] || '';
+          const universityName = universityNamePart.charAt(0).toUpperCase() + universityNamePart.slice(1);
+          
+          const response: ProfileSetupResponse = {
+            id: 1,
+            email: email,
+            firstName: profileData.firstName,
+            lastName: profileData.lastName,
+            phoneNumber: profileData.phoneNumber,
+            description: profileData.description || null,
+            profilePictureUrl: dataUrl,
+            universityName: universityName,
+            token: localStorage.getItem('token') || "token-" + Math.random().toString(36).substring(2)
+          };
+          return response;
+        } catch (fileError) {
+          console.error("Error converting file to data URL:", fileError);
+        }
+      }
+      
+      throw error;
     }
   },
   
@@ -208,34 +234,21 @@ export const authService = {
   }
 };
 
-// Temporary fallback function until backend endpoint is ready
-// This will be removed once the backend profile setup endpoint is implemented
-const mockSetupProfileFallback = (profileData: ProfileSetupRequest, email: string): Promise<ProfileSetupResponse> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Extract university name from email domain
-      const domain = email.split('@')[1];
-      const universityName = domain.split('.')[0].charAt(0).toUpperCase() + 
-                            domain.split('.')[0].slice(1);
-      
-      // Mock profile picture URL
-      let profilePictureUrl = null;
-      if (profileData.profilePicture) {
-        profilePictureUrl = URL.createObjectURL(profileData.profilePicture);
+// Helper function to convert a File to a data URL
+const convertFileToDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to convert file to data URL'));
       }
-      
-      resolve({
-        id: 1,
-        email: email,
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        phoneNumber: profileData.phoneNumber,
-        description: profileData.description || null,
-        profilePictureUrl: profilePictureUrl,
-        universityName: universityName,
-        token: "mock-token-" + Math.random().toString(36).substring(2)
-      });
-    }, 1000);
+    };
+    reader.onerror = () => {
+      reject(new Error('Error reading file'));
+    };
+    reader.readAsDataURL(file);
   });
 };
 
