@@ -26,7 +26,7 @@ Order History: Customers can view their past orders and track the status of ongo
         - Docker
         - Java Spring Mail + Other Dependencies
         - Maven Build Tool 
-    - Front-end
+    - Front-end (ngl made using AI):
         - TypeScript
         - Node.JS
         - React.JS
