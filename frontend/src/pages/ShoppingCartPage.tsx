@@ -578,6 +578,18 @@ const ShoppingCartPage: React.FC = () => {
       .reduce((total, item) => total + item.price, 0);
   };
 
+  const calculateTransactionFee = () => {
+    return calculateTotal() * 0.03;
+  };
+
+  const calculateEstimatedTax = () => {
+    return calculateTotal() * 0.0625;
+  };
+
+  const calculateFinalTotal = () => {
+    return calculateTotal() + calculateEstimatedTax() + calculateTransactionFee();
+  };
+
   // Group items by seller
   const itemsBySeller = cartItems.reduce((acc, item) => {
     if (!acc[item.seller]) {
@@ -757,15 +769,19 @@ const ShoppingCartPage: React.FC = () => {
               <CartSummary>
                 <SummaryRow>
                   <span>Subtotal ({cartItems.filter(item => item.checked).length} items)</span>
-                  <span>${calculateTotal()}</span>
+                  <span>${calculateTotal().toFixed(2)}</span>
+                </SummaryRow>
+                <SummaryRow>
+                  <span>Transaction Fee (3%)</span>
+                  <span>${calculateTransactionFee().toFixed(2)}</span>
                 </SummaryRow>
                 <SummaryRow>
                   <span>Estimated Tax</span>
-                  <span>${(calculateTotal() * 0.0625).toFixed(2)}</span>
+                  <span>${calculateEstimatedTax().toFixed(2)}</span>
                 </SummaryRow>
                 <SummaryRow>
                   <span>Total</span>
-                  <span>${(calculateTotal() * 1.0625).toFixed(2)}</span>
+                  <span>${calculateFinalTotal().toFixed(2)}</span>
                 </SummaryRow>
                 <CheckoutButton 
                   disabled={calculateTotal() === 0}

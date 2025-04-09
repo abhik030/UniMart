@@ -581,9 +581,15 @@ const CheckoutPage: React.FC = () => {
   const calculateDonation = () => {
     if (!roundUpDonation) return 0;
     
-    const total = calculateSubtotal() + calculateTax() - calculateDiscount();
+    const transactionFee = calculateTransactionFee();
+    const total = calculateSubtotal() + calculateTax() - calculateDiscount() + transactionFee;
     const roundedTotal = Math.ceil(total);
-    return roundedTotal - total;
+    return Math.max(0, roundedTotal - total); // Ensure donation is never negative
+  };
+  
+  // Calculate transaction fee (3% for all purchases)
+  const calculateTransactionFee = () => {
+    return Math.round(calculateSubtotal() * 0.03 * 100) / 100;
   };
   
   // Calculate discount (2% for non-cash payments)
@@ -594,14 +600,15 @@ const CheckoutPage: React.FC = () => {
     return 0;
   };
   
-  // Calculate total with discount
+  // Calculate total with all fees and discounts
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const tax = calculateTax();
     const discount = calculateDiscount();
+    const transactionFee = calculateTransactionFee();
     const donation = calculateDonation();
     
-    return subtotal + tax - discount + donation;
+    return subtotal + tax - discount + transactionFee + donation;
   };
   
   const handleLogoClick = () => {
@@ -711,7 +718,7 @@ const CheckoutPage: React.FC = () => {
                   <PaymentLogo>
                     <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" />
                   </PaymentLogo>
-                  <PaymentLabel>Stripe {paymentMethod === 'stripe' && <DiscountBadge>2% Off</DiscountBadge>}</PaymentLabel>
+                  <PaymentLabel>Stripe {paymentMethod === 'stripe' && <DiscountBadge>2% Discount</DiscountBadge>}</PaymentLabel>
                 </PaymentMethodOption>
                 
                 <PaymentMethodOption>
@@ -733,7 +740,7 @@ const CheckoutPage: React.FC = () => {
                 </PaymentMethodOption>
                 {paymentMethod === 'cash' && (
                   <CashWarning>
-                    Note: Sellers are less likely to accept cash payments due to additional fees they incur.
+                    Note: Cash payments do not receive the 2% online payment discount, resulting in a higher effective fee (3% versus 1% for online payments).
                   </CashWarning>
                 )}
                 
@@ -753,7 +760,7 @@ const CheckoutPage: React.FC = () => {
                         <path fill="#010101" d="M17.423,38.066c-0.517,0-0.913-0.052-1.214-0.157c-0.153-0.054-0.271-0.179-0.314-0.334 c-0.08-0.281-0.28-1.376-0.601-3.139c-0.161-0.891-0.329-1.816-0.469-2.55l-0.138-0.729c-0.368-1.944-0.716-3.78-1.259-5.704 c-0.391-1.383-0.573-2.829-0.75-4.229c-0.135-1.061-0.273-2.157-0.501-3.204c-0.08-0.366-0.163-0.727-0.246-1.085 c-0.38-1.65-0.739-3.21-0.739-4.984c0-0.263,0.203-0.48,0.466-0.499c1.463-0.1,2.666-0.141,4.154-0.141 c0.856,0,1.665-0.087,2.447-0.172c1.006-0.108,2.052-0.217,3.151-0.14c0.251,0.019,0.449,0.22,0.463,0.471 c0.089,1.578,0.355,2.947,0.638,4.396c0.24,1.231,0.488,2.505,0.611,3.9c0.063,0.719,0.111,1.552,0.161,2.437 c0.119,2.087,0.251,4.413,0.647,6.176c0.37-0.592,0.896-1.722,1.567-3.374c0.096-0.235,0.175-0.432,0.233-0.566 c0.774-1.8,1.246-3.149,1.627-4.66c0.389-1.546,1.141-5.366-0.272-7.436c-0.104-0.152-0.115-0.349-0.031-0.512 c0.085-0.164,0.253-0.268,0.437-0.271c1.395-0.021,3.603-0.376,4.921-0.79c1.244-0.39,2.166-0.64,3.763-0.542 c0.165,0.011,0.314,0.102,0.399,0.245c1.271,2.152,1.489,6.424,1.424,7.736c-0.17,3.432-1.301,5.601-2.88,8.291 c-0.722,1.228-2.222,3.782-2.916,5.271c-0.736,1.58-4.667,5.882-4.834,6.064c-0.1,0.109-0.233,0.164-0.39,0.162 c-0.045-0.002-4.486-0.188-6.167-0.188c-0.341,0-0.842,0.053-1.371,0.108C18.792,37.989,18.057,38.066,17.423,38.066z M16.794,37.026c0.562,0.087,1.648-0.006,2.543-0.1c0.557-0.059,1.082-0.114,1.476-0.114c1.497,0,5.024,0.14,5.976,0.179 c1.21-1.334,3.976-4.496,4.509-5.64c0.714-1.532,2.23-4.114,2.96-5.354c1.554-2.647,2.585-4.623,2.744-7.834 c0.056-1.138-0.131-4.94-1.16-6.948c-1.232-0.05-2.021,0.165-3.129,0.513c-1.158,0.363-2.965,0.683-4.39,0.794 c1.081,2.443,0.388,5.987,0.007,7.503c-0.395,1.565-0.881,2.96-1.679,4.812c-0.056,0.131-0.133,0.319-0.226,0.547 c-1.099,2.707-1.843,4.215-2.624,4.432c-0.264,0.076-0.53-0.075-0.611-0.332c-0.603-1.93-0.762-4.741-0.903-7.221 c-0.05-0.873-0.096-1.695-0.159-2.405c-0.119-1.343-0.361-2.591-0.597-3.797c-0.251-1.288-0.509-2.616-0.624-4.082 c-0.853-0.026-1.674,0.064-2.539,0.157c-0.809,0.088-1.645,0.178-2.555,0.178c-1.3,0-2.379,0.031-3.611,0.107 c0.057,1.479,0.373,2.85,0.705,4.292c0.083,0.361,0.167,0.727,0.248,1.097c0.237,1.091,0.379,2.21,0.517,3.292 c0.172,1.362,0.351,2.771,0.721,4.082c0.555,1.966,0.906,3.823,1.278,5.789l0.138,0.728c0.14,0.736,0.309,1.666,0.471,2.559 C16.47,35.313,16.682,36.482,16.794,37.026z"/>
                     </svg>
                   </PaymentLogo>
-                  <PaymentLabel>Venmo {paymentMethod === 'venmo' && <DiscountBadge>2% Off</DiscountBadge>}</PaymentLabel>
+                  <PaymentLabel>Venmo {paymentMethod === 'venmo' && <DiscountBadge>2% Discount</DiscountBadge>}</PaymentLabel>
                 </PaymentMethodOption>
                 
                 <PaymentMethodOption>
@@ -769,17 +776,17 @@ const CheckoutPage: React.FC = () => {
                         <path d="M 9.984375 15.001953 C 9.149375 15.041953 8.1182969 15.573313 7.5292969 16.320312 C 6.9892969 16.964312 6.5275313 18.010188 6.6445312 18.992188 C 7.5875313 19.074188 8.5301406 18.500438 9.1191406 17.773438 C 9.6991406 17.026437 10.082375 16.024953 9.984375 15.001953 z M 18 17 L 18 32 L 20.375 32 L 20.375 27 L 23.625 27 C 26.608 27 28.75 24.925 28.75 22 C 28.75 19.075 26.647125 17 23.703125 17 L 18 17 z M 20.375 19 L 23.125 19 C 25.172 19 26.375 20.105 26.375 22 C 26.375 23.895 25.182 25 23.125 25 L 20.375 25 L 20.375 19 z M 9.875 19.5 C 8.5 19.5 7.517 20.25 6.875 20.25 C 6.223 20.25 5.25 19.509766 4.125 19.509766 C 2.75 19.509766 1.4033594 20.372859 0.69335938 21.630859 C -0.76564063 24.145859 0.31460937 27.869016 1.7246094 29.916016 C 2.4156094 30.930016 3.25 32 4.375 32 C 5.406 31.961 5.755 31.375 7 31.375 C 8.254 31.375 8.625 32 9.75 32 C 10.875 32 11.556094 30.969078 12.246094 29.955078 C 13.034094 28.805078 13.356 27.684 13.375 27.625 C 13.356 27.606 11.197734 26.77725 11.177734 24.28125 C 11.158734 22.19525 12.879031 21.200578 12.957031 21.142578 C 11.984031 19.700578 10.375 19.5 10 19.5 L 9.875 19.5 z M 34.199219 21 C 31.710219 21 29.870734 22.395453 29.802734 24.314453 L 31.912109 24.314453 C 32.086109 23.402453 32.948859 22.804688 34.130859 22.804688 C 35.563859 22.804688 36.373047 23.460969 36.373047 24.667969 L 36.375 25.5 L 33.443359 25.654297 C 30.722359 25.815297 29.25 26.908594 29.25 28.808594 C 29.25 30.727594 30.770219 32.001953 32.949219 32.001953 C 34.421219 32.001953 35.78725 31.270328 36.40625 30.111328 L 36.455078 30.111328 L 36.455078 31.886719 L 38.623047 31.886719 L 38.623047 24.515625 C 38.624047 22.376625 36.882219 21 34.199219 21 z M 39.5 21 L 43.507812 31.949219 L 43.292969 32.615234 C 42.930969 33.744234 42.344828 34.177734 41.298828 34.177734 C 41.119828 34.177734 40.781 34.159625 40.625 34.140625 L 40.625 35.945312 C 40.783 35.980313 41.332906 36 41.503906 36 C 43.810906 36 44.896703 35.132047 45.845703 32.498047 L 50 21 L 47.595703 21 L 44.808594 29.884766 L 44.759766 29.884766 L 41.972656 21 L 39.5 21 z M 36.375 27 L 36.367188 27.867188 C 36.367188 29.254188 35.166125 30.242188 33.578125 30.242188 C 32.329125 30.242188 31.535156 29.653953 31.535156 28.751953 C 31.535156 27.820953 32.300672 27.279359 33.763672 27.193359 L 36.375 27 z"/>
                     </svg>
                   </PaymentLogo>
-                  <PaymentLabel>Apple Pay {paymentMethod === 'apple' && <DiscountBadge>2% Off</DiscountBadge>}</PaymentLabel>
+                  <PaymentLabel>Apple Pay {paymentMethod === 'apple' && <DiscountBadge>2% Discount</DiscountBadge>}</PaymentLabel>
                 </PaymentMethodOption>
               </PaymentMethodsGrid>
               
               <div style={{ marginTop: '1rem', fontSize: '0.9rem', color: huskyTheme.colors.lightText, position: 'relative' }}>
-                If you were looking to pay with credit cards add it to Stripe
+                All purchases include a 3% transaction fee. Online payments receive a 2% discount (effectively a 1% fee). Cash payments incur the full 3% fee.
                 <InfoIconContainer>
                   <InfoIcon onClick={() => setShowCreditCardInfo(!showCreditCardInfo)}>i</InfoIcon>
                   {showCreditCardInfo && (
                     <InfoTooltip ref={creditCardInfoRef}>
-                      Paying with credit cards will result in a 2% fee which is almost fully offset by the 2% discount you receive by paying online. Paying with a debit card incurs no fee and still gives you the 2% discount.
+                      Online payments through Stripe, Venmo, or Apple Pay receive a 2% discount, resulting in a net fee of 1%. Cash payments don't receive this discount, resulting in the full 3% fee.
                     </InfoTooltip>
                   )}
                 </InfoIconContainer>
@@ -815,7 +822,7 @@ const CheckoutPage: React.FC = () => {
                 <div>
                   <PaymentLabel>Round up to the nearest dollar</PaymentLabel>
                   <div style={{ fontSize: '0.9rem', color: huskyTheme.colors.lightText }}>
-                    Your total will be rounded up from ${(calculateSubtotal() + calculateTax() - calculateDiscount()).toFixed(2)} to ${Math.ceil(calculateSubtotal() + calculateTax() - calculateDiscount())}
+                    Your total will be rounded up from ${(calculateSubtotal() + calculateTax() - calculateDiscount() + calculateTransactionFee()).toFixed(2)} to ${Math.ceil(calculateSubtotal() + calculateTax() - calculateDiscount() + calculateTransactionFee())}
                   </div>
                 </div>
               </DonationOption>
@@ -838,6 +845,11 @@ const CheckoutPage: React.FC = () => {
               <SummaryItem>
                 <span>Estimated Tax</span>
                 <span>${calculateTax().toFixed(2)}</span>
+              </SummaryItem>
+              
+              <SummaryItem>
+                <span>Transaction Fee (3%)</span>
+                <span>${calculateTransactionFee().toFixed(2)}</span>
               </SummaryItem>
               
               {paymentMethod !== 'cash' && (
@@ -864,7 +876,7 @@ const CheckoutPage: React.FC = () => {
               </CheckoutButton>
               
               <LegalSection>
-                By placing your order, you agree to HuskyMart's <LegalLink href="/user-agreement">User Agreement</LegalLink> and <LegalLink href="/privacy-notice">Privacy Notice</LegalLink>.
+                By placing your order, you agree to UniMart's <LegalLink href="/user-agreement">User Agreement</LegalLink> and <LegalLink href="/privacy-notice">Privacy Notice</LegalLink>.
               </LegalSection>
             </OrderSummarySection>
           </SidePanel>
