@@ -28,22 +28,22 @@ services:
       - mysql
     environment:
       # Database Configuration
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/unimart
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       
       # Email Configuration
-      SPRING_MAIL_HOST: smtp.gmail.com
-      SPRING_MAIL_PORT: 587
-      SPRING_MAIL_USERNAME: studentunimart@gmail.com
-      SPRING_MAIL_PASSWORD: zalj giec bgro zzvc
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: smtp.gmail.com
-      SPRING_MAIL_PROPERTIES_MAIL_DEBUG: true
+      SPRING_MAIL_PROPERTIES_MAIL_DEBUG: false
       
       # CORS Configuration
-      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
       
       # Stripe Configuration
       STRIPE_API_KEY: ${STRIPE_API_KEY}
@@ -67,6 +67,7 @@ services:
       - backend
     environment:
       - REACT_APP_API_URL=http://localhost:8081/api
+      - REACT_APP_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - WATCHPACK_POLLING=true
     ports:
       - "3000:3000"

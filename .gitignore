@@ -2,10 +2,48 @@
 *.log
 *.class
 .DS_Store
+
+# Environment variables and secrets
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.env
+**/secrets/
+
+# Database files
 datagrip-project/
 database-config.json
+*.sql.bak
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Node modules and build files
+node_modules/
+build/
+dist/
+coverage/
+
+# Compiled class files
+target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+log/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+SECURITY.md
