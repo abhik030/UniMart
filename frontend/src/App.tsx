@@ -21,6 +21,8 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ShoppingCartPage from './pages/ShoppingCartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import BidManagementPage from './pages/BidManagementPage';
+import UserAgreementPage from './pages/UserAgreementPage';
+import PrivacyNoticePage from './pages/PrivacyNoticePage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -68,12 +70,15 @@ const App: React.FC = () => {
       <Router>
         <AppContainer>
           <Routes>
+            {/* Authentication & Root Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/verify" element={<VerifyPage />} />
             <Route path="/verify-email" element={<EmailVerificationPage />} />
             <Route path="/unsupported" element={<UnsupportedSchoolPage />} />
             <Route path="/email-test" element={<EmailTestPage />} />
+            <Route path="/user-agreement" element={<UserAgreementPage />} />
+            <Route path="/privacy" element={<PrivacyNoticePage />} />
             <Route 
               path="/profile-setup" 
               element={
@@ -82,60 +87,21 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/huskymart" 
-              element={
-                <ProtectedRoute>
-                  <HuskyMartPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/huskymart/category/:category" 
-              element={
-                <ProtectedRoute>
-                  <CategoryPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/northeastern" 
-              element={
-                <ProtectedRoute>
-                  <HuskyMartPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/marketplace" element={<Navigate to="/huskymart" replace />} />
-            <Route 
-              path="/list-item" 
-              element={
-                <ProtectedRoute>
-                  <ListYourItemPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/bids" 
-              element={
-                <ProtectedRoute>
-                  <BidManagementPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/messages" 
-              element={
-                <ProtectedRoute>
-                  <MessagesPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/settings" element={<SettingsPage />} />
+
+            {/* Marketplace Routes */}
+            <Route path="/huskymart" element={<HuskyMartPage />} />
+            <Route path="/huskymart/category/:category" element={<CategoryPage />} />
+            <Route path="/northeastern" element={<Navigate to="/huskymart" replace />} />
             <Route path="/product/:productId" element={<ProductDetailPage />} />
-            <Route path="/shopping-cart" element={<ShoppingCartPage />} />
+            <Route path="/list-item" element={<ListYourItemPage />} />
+            <Route path="/bids" element={<BidManagementPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/cart" element={<Navigate to="/shopping-cart" replace />} />
+            <Route path="/shopping-cart" element={<ShoppingCartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+
+            {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppContainer>

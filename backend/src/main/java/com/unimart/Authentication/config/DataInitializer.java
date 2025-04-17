@@ -1,7 +1,7 @@
 package com.unimart.Authentication.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +14,11 @@ import com.unimart.Authentication.repositories.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Component
 @Slf4j
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
     @Autowired
     private UniversityRepository universityRepository;
@@ -29,20 +29,20 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private UserProfileRepository userProfileRepository;
     
-    @Override
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+    
     @Transactional
-    public void run(String... args) throws Exception {
-        // Temporarily disabling all initialization to fix startup issues
-        log.info("Data initialization disabled to avoid UserProfile errors");
+    public void initializeData() {
+        log.info("Starting data initialization...");
         
         // Initialize default universities if not present
-        // initializeUniversities();
+        initializeUniversities();
         
         // Create developer account
-        // createDeveloperAccount();
+        createDeveloperAccount();
     }
     
-    @SuppressWarnings("unused")
     private void initializeUniversities() {
         // Add Northeastern University if not present
         if (!universityRepository.existsByDomain("northeastern.edu")) {
@@ -56,45 +56,45 @@ public class DataInitializer implements CommandLineRunner {
         // Add more universities as needed
     }
     
-    @SuppressWarnings("unused")
+    @Transactional
     private void createDeveloperAccount() {
         String developerEmail = "studentunimart@gmail.com";
-        
-        // Check if developer account already exists
-        if (!userRepository.existsByEmail(developerEmail)) {
-            // Get northeastern university
-            University neu = universityRepository.findByDomain("northeastern.edu")
-                    .orElseThrow(() -> new RuntimeException("Northeastern University not found"));
-            
-            // Create developer user
-            User developerUser = new User();
-            developerUser.setEmail(developerEmail);
-            developerUser.setUsername("unimart_developer");
-            developerUser.setUniversity(neu);
-            developerUser.setVerified(true);
-            developerUser.setBanned(false);
-            developerUser.setCreatedAt(LocalDateTime.now());
-            developerUser.setTrustedDeviceToken("developer-token-" + System.currentTimeMillis());
-            developerUser = userRepository.save(developerUser);
-            
-            // Refresh the user entity to ensure it's properly attached to the persistence context
-            developerUser = userRepository.findById(developerEmail)
-                .orElseThrow(() -> new RuntimeException("Failed to retrieve saved developer user"));
-            
-            // Create developer profile using the constructor that correctly sets up the MapsId relationship
-            UserProfile profile = new UserProfile(
-                developerUser,
-                "UniMart",
-                "Developer",
-                "555-123-4567",
-                "UniMart developer account for testing purposes."
-            );
-            profile.setProfileImageUrl("https://unimart.com/profile-pictures/developer-avatar.png");
-            userProfileRepository.save(profile);
-            
-            log.info("Created developer account: {}", developerEmail);
+        Optional<User> existingUser = userRepository.findByEmail(developerEmail);
+
+        if (existingUser.isEmpty()) {
+            try {
+                University northeasternUniversity = universityRepository.findByDomain("northeastern.edu")
+                        .orElseThrow(() -> new RuntimeException("Northeastern University not found"));
+
+                // Create and save the User first
+                User developer = new User(
+                    developerEmail,
+                    "unimart_developer",
+                    passwordEncoder.encode("developer123"),
+                    "DEVELOPER",
+                    northeasternUniversity
+                );
+                developer.setVerified(true);
+                developer = userRepository.save(developer);
+                log.info("Developer user account created successfully");
+
+                // Create and save the UserProfile
+                UserProfile developerProfile = new UserProfile();
+                developerProfile.setUserEmail(developerEmail); // Set ID explicitly
+                developerProfile.setUser(developer);
+                developerProfile.setFirstName("UniMart");
+                developerProfile.setLastName("Developer");
+                developerProfile.setPhoneNumber("1234567890");
+                developerProfile.setBio("UniMart Developer Account");
+                
+                developerProfile = userProfileRepository.save(developerProfile);
+                log.info("Developer profile created successfully");
+            } catch (Exception e) {
+                log.error("Error creating developer account: " + e.getMessage());
+                e.printStackTrace();
+            }
         } else {
-            log.info("Developer account already exists: {}", developerEmail);
+            log.info("Developer account already exists");
         }
     }
 } 

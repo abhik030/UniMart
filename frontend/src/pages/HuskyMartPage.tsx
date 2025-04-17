@@ -151,8 +151,15 @@ const SearchContainer = styled.div`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 700px;
-  max-width: 50%;
+  width: min(600px, 40vw);
+  max-width: 40%;
+  min-width: 250px;
+  
+  @media (max-width: 768px) {
+    width: min(500px, 35vw);
+    max-width: 35%;
+    min-width: 200px;
+  }
 `;
 
 const SearchBar = styled.div`
@@ -162,12 +169,12 @@ const SearchBar = styled.div`
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 0.75rem 1.5rem 0.75rem 2.5rem;
+  padding: 0.6rem 1.2rem 0.6rem 2.2rem;
   border-radius: 20px;
   border: none;
   background-color: white;
   color: ${props => props.theme.colors.text};
-  font-size: 1.1rem;
+  font-size: clamp(0.85rem, 1vw, 1rem);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   
   &::placeholder {
@@ -319,9 +326,9 @@ const ProfilePicture = styled.div`
   }
 `;
 
-const ShoppingCartButton = styled(motion.button)`
+const ShoppingCartButton = styled(motion.button)<{ isProfileOpen?: boolean }>`
   position: fixed;
-  top: 5rem;
+  top: ${props => props.isProfileOpen ? 'calc(5rem + 200px)' : '5rem'};
   right: 2rem;
   width: 45px;
   height: 45px;
@@ -334,6 +341,7 @@ const ShoppingCartButton = styled(motion.button)`
   align-items: center;
   justify-content: center;
   z-index: 100;
+  transition: top 0.3s ease;
   
   svg {
     width: 20px;
@@ -582,6 +590,17 @@ const Footer = styled.footer`
 const FooterText = styled.p`
   margin: 0;
   font-size: 0.9rem;
+  color: white;
+  
+  a {
+    color: white;
+    text-decoration: underline;
+    margin: 0 0.25rem;
+    
+    &:hover {
+      color: ${props => props.theme.colors.primaryLight};
+    }
+  }
 `;
 
 const MarketSwitcherContainer = styled.div`
@@ -1870,10 +1889,13 @@ const HuskyMartPage: React.FC = () => {
           </HeaderActions>
         </Header>
 
-        <ShoppingCartButton onClick={(e) => {
-          e.stopPropagation();
-          navigate('/shopping-cart');
-        }}>
+        <ShoppingCartButton 
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate('/shopping-cart');
+          }}
+          isProfileOpen={showProfileDropdown}
+        >
           <svg viewBox="0 0 24 24">
             <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
           </svg>
@@ -2115,19 +2137,24 @@ const HuskyMartPage: React.FC = () => {
                 <MarketIcon bgColor="#D41B2C" />
                 HuskyMart
               </MarketOption>
-              <MarketOption 
-                key="Northeastern"
-                onClick={() => handleMarketChange('/northeastern')}
-              >
-                <MarketIcon bgColor="#D41B2C" />
-                Northeastern
-              </MarketOption>
             </MarketDropdown>
           )}
         </MarketSwitcherContainer>
         
         <Footer>
-          <FooterText>© {new Date().getFullYear()} Northeastern University Marketplace - All Rights Reserved</FooterText>
+          <FooterText>
+            UniMart is currently operated as a sole proprietorship. All transactions are subject to our{' '}
+            <a href="/user-agreement" onClick={(e) => {
+              e.preventDefault();
+              navigate('/user-agreement');
+            }}>User Agreement</a>
+            {' '}and{' '}
+            <a href="/privacy" onClick={(e) => {
+              e.preventDefault();
+              navigate('/privacy');
+            }}>Privacy Notice</a>
+            .
+          </FooterText>
         </Footer>
         
         {/* Modals */}

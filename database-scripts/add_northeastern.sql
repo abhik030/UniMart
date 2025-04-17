@@ -1,6 +1,6 @@
 -- Script to add Northeastern University to the database
 
--- Check if the university already exists
+-- Add Northeastern University if it doesn't exist
 INSERT INTO Universities (name, domain)
 SELECT 'Northeastern University', 'northeastern.edu'
 WHERE NOT EXISTS (

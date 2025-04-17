@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -22,8 +21,7 @@ public class UserProfile {
     private String userEmail;
     
     @OneToOne
-    @MapsId
-    @JoinColumn(name = "user_email")
+    @JoinColumn(name = "user_email", referencedColumnName = "email")
     private User user;
     
     @Column(name = "first_name")
@@ -48,5 +46,13 @@ public class UserProfile {
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.bio = bio;
+    }
+
+    // Ensure userEmail is set when user is set
+    public void setUser(User user) {
+        this.user = user;
+        if (user != null) {
+            this.userEmail = user.getEmail();
+        }
     }
 } 

@@ -1,8 +1,11 @@
 -- UniMart Database Schema
 
+
 CREATE TABLE Users (
-    email VARCHAR(255) PRIMARY KEY CHECK (email LIKE '%.edu'),
+    email VARCHAR(255) PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('USER', 'ADMIN', 'DEVELOPER') DEFAULT 'USER',
     is_verified BOOLEAN DEFAULT FALSE,
     university_id INT,
     trusted_device_token VARCHAR(255),
@@ -13,23 +16,29 @@ CREATE TABLE Users (
     FOREIGN KEY (banned_by) REFERENCES AdminUsers(email) ON DELETE SET NULL
 );
 
-
-CREATE INDEX idx_users_university_id ON Users(university_id);
-CREATE INDEX idx_users_username ON Users(username);
-
 CREATE TABLE IF NOT EXISTS Universities (
     university_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     domain VARCHAR(100) UNIQUE NOT NULL  -- Example: "northeastern.edu"
 );
 
+INSERT INTO Universities (name, domain)
+SELECT 'Northeastern University', 'northeastern.edu'
+WHERE NOT EXISTS (
+    SELECT 1 FROM Universities WHERE domain = 'northeastern.edu'
+);
+
+
 CREATE TABLE UserProfiles (
     user_email VARCHAR(255) PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     profile_image_url VARCHAR(500) NULL,
     bio TEXT NULL,
     phone_number VARCHAR(20) NULL,
     FOREIGN KEY (user_email) REFERENCES Users(email) ON DELETE CASCADE
 );
+
 
 
 CREATE TABLE VerificationCodes (
@@ -53,6 +62,10 @@ CREATE TABLE Products (
     item_condition ENUM('New', 'Like New', 'Good', 'Fair', 'Poor') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status ENUM('Available', 'Pending', 'Sold') DEFAULT 'Available',
+    stripe_product_id VARCHAR(255),  -- Stripe product ID
+    stripe_price_id VARCHAR(255),    -- Stripe price ID
+    is_active BOOLEAN DEFAULT TRUE,  -- For soft deletion
+    quantity INT DEFAULT 1,          -- For multiple items
     FOREIGN KEY (seller_email) REFERENCES Users(email) ON DELETE CASCADE,
     FOREIGN KEY (university_id) REFERENCES Universities(university_id) ON DELETE CASCADE
 );
@@ -60,6 +73,7 @@ CREATE TABLE Products (
 CREATE INDEX idx_products_seller_email ON Products(seller_email);
 CREATE INDEX idx_products_category ON Products(category);
 CREATE INDEX idx_products_status ON Products(status);
+
 
 CREATE TABLE ProductImages (
     image_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -88,6 +102,7 @@ CREATE INDEX idx_orders_buyer_email ON Orders(buyer_email);
 CREATE INDEX idx_orders_seller_email ON Orders(seller_email);
 CREATE INDEX idx_orders_status ON Orders(order_status);
 
+
 CREATE TABLE Order_Products (
     order_product_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -109,9 +124,12 @@ CREATE TABLE Payments (
     seller_email VARCHAR(255) NOT NULL,
     amount_paid DECIMAL(10,2) CHECK (amount_paid >= 0) NOT NULL,
     payment_status ENUM('Pending', 'Completed', 'Failed', 'Refunded', 'Seller Rejected') DEFAULT 'Pending',
-    payment_method ENUM('Cash', 'Venmo', 'Zelle', 'Apple Pay') NOT NULL,
+    payment_method ENUM('Cash', 'Venmo', 'Zelle', 'Apple Pay', 'Stripe') NOT NULL,
     payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     seller_rejection_reason VARCHAR(255) NULL,
+    stripe_payment_intent_id VARCHAR(255),  -- Stripe payment intent ID
+    stripe_client_secret VARCHAR(255),      -- Stripe client secret
+    stripe_charge_id VARCHAR(255),          -- Stripe charge ID
     FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (buyer_email) REFERENCES Users(email) ON DELETE CASCADE,
     FOREIGN KEY (seller_email) REFERENCES Users(email) ON DELETE CASCADE
@@ -130,6 +148,7 @@ CREATE TABLE Messages (
     FOREIGN KEY (sender_email) REFERENCES Users(email) ON DELETE CASCADE,
     FOREIGN KEY (receiver_email) REFERENCES Users(email) ON DELETE CASCADE
 );
+
 CREATE INDEX idx_messages_sender ON Messages(sender_email);
 CREATE INDEX idx_messages_receiver ON Messages(receiver_email);
 

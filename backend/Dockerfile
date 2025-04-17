@@ -6,6 +6,9 @@ WORKDIR /app
 # Copy the Maven POM file
 COPY pom.xml .
 
+# Add mvn clean to ensure a clean build directory
+RUN mvn dependency:go-offline || true
+
 # Copy the source code
 COPY src ./src
 

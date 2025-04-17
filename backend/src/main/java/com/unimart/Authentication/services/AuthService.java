@@ -59,7 +59,7 @@ public class AuthService {
             log.info("Developer account email detected: {}", email);
             // Use Northeastern University as the default university for the developer account
             University university = universityRepository.findByDomain("northeastern.edu")
-                    .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+                    .orElseThrow(() -> new SchoolNotFoundException("Northeastern University not found in database"));
             
             // Generate and send verification code
             String code = generateCode();
@@ -101,14 +101,13 @@ public class AuthService {
         // Extract domain from email (e.g., northeastern.edu from user@northeastern.edu)
         String domain = email.substring(email.indexOf('@') + 1);
         
-        // Try to find the university, but don't throw an exception if not found
+        // Try to find the university
         University university = universityRepository.findByDomain(domain)
                 .orElseGet(() -> {
-                    // If the university isn't in our database, use a default university (Northeastern)
-                    // This is a temporary solution to allow any .edu email for testing
-                    log.info("School not directly supported: {}. Using default university.", domain);
+                    // If the university isn't in our database, use Northeastern as default
+                    log.info("School not directly supported: {}. Using Northeastern as default.", domain);
                     return universityRepository.findByDomain("northeastern.edu")
-                            .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+                            .orElseThrow(() -> new SchoolNotFoundException("Default university (Northeastern) not found in database"));
                 });
         
         // Generate and send verification code
@@ -122,28 +121,14 @@ public class AuthService {
         // Save new verification code
         verificationCodeRepository.save(new VerificationCode(email, code, expirationTime));
         
-        // Create a customized email body based on whether this is a directly supported school
-        String emailBody;
-        if (domain.equals(university.getDomain())) {
-            // This is a directly supported school
-            emailBody = String.format(
-                "Welcome to UniMart!\n\n" +
-                "Your verification code is: %s\n\n" +
-                "This code will expire in 10 minutes.\n\n" +
-                "Thank you for joining the %s's UniMart community!",
-                code, university.getName()
-            );
-        } else {
-            // This is not a directly supported school
-            emailBody = String.format(
-                "Welcome to UniMart!\n\n" +
-                "Your verification code is: %s\n\n" +
-                "This code will expire in 10 minutes.\n\n" +
-                "Thank you for joining the UniMart community! While your school (%s) " +
-                "is not yet directly supported, you can still use our platform through the HuskyMart marketplace.",
-                code, domain
-            );
-        }
+        // Create email body
+        String emailBody = String.format(
+            "Welcome to UniMart!\n\n" +
+            "Your verification code is: %s\n\n" +
+            "This code will expire in 10 minutes.\n\n" +
+            "Thank you for joining the %s's UniMart community!",
+            code, university.getName()
+        );
         
         // Send the email
         emailService.sendEmail(email, "UniMart Verification Code", emailBody);
@@ -168,13 +153,12 @@ public class AuthService {
             // Extract domain
             String domain = email.substring(email.indexOf('@') + 1);
             
-            // Try to find the university, but don't throw an exception if not found
+            // Try to find the university
             University university = universityRepository.findByDomain(domain)
                     .orElseGet(() -> {
-                        // If the university isn't in our database, use a default university (Northeastern)
                         log.info("School not directly supported in verification: {}. Using default university.", domain);
                         return universityRepository.findByDomain("northeastern.edu")
-                                .orElseThrow(() -> new SchoolNotFoundException("Default university not found. System configuration error."));
+                                .orElseThrow(() -> new SchoolNotFoundException("Default university (Northeastern) not found in database"));
                     });
             
             // Check if this is a first-time verification
@@ -188,7 +172,8 @@ public class AuthService {
                         while (userRepository.existsByUsername(username)) {
                             username = generateUsername(email) + new Random().nextInt(1000);
                         }
-                        return new User(email, username, university);
+                        User newUser = new User(email, username, "unused", "USER", university);
+                        return userRepository.save(newUser);
                     });
             
             // Mark user as verified
@@ -262,7 +247,7 @@ public class AuthService {
                     while (userRepository.existsByUsername(username)) {
                         username = generateUsername(email) + new Random().nextInt(1000);
                     }
-                    return new User(email, username, university);
+                    return new User(email, username, "unused", "USER", university);
                 });
         
         // Mark user as verified
@@ -349,10 +334,13 @@ public class AuthService {
         
         // Create or update user profile
         UserProfile profile = userProfileRepository.findByUserEmail(email)
-                .orElse(new UserProfile());
+                .orElseGet(() -> {
+                    UserProfile newProfile = new UserProfile();
+                    newProfile.setUser(user);
+                    newProfile.setUserEmail(email);
+                    return newProfile;
+                });
         
-        profile.setUser(user);
-        profile.setUserEmail(email);
         profile.setFirstName(request.getFirstName());
         profile.setLastName(request.getLastName());
         profile.setPhoneNumber(request.getPhoneNumber());

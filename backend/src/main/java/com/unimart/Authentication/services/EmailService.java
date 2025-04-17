@@ -19,6 +19,8 @@ public class EmailService {
     
     public void sendEmail(String to, String subject, String body) {
         try {
+            log.info("Attempting to send email from {} to {} with subject: {}", fromEmail, to, subject);
+            
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
@@ -28,11 +30,9 @@ public class EmailService {
             mailSender.send(message);
             log.info("Email sent successfully to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send email to: {}", to, e);
-            // For development, print to console as fallback
-            System.out.println("Sending email to: " + to);
-            System.out.println("Subject: " + subject);
-            System.out.println("Body: " + body);
+            log.error("Failed to send email to: {}. Error: {}", to, e.getMessage());
+            log.error("Stack trace:", e);
+            throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
         }
     }
 }

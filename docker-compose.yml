@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL Database
   mysql:
@@ -7,10 +5,10 @@ services:
     container_name: unimart-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-unimart}
-      MYSQL_USER: ${MYSQL_USER:-unimartuser}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-unimartpassword}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
@@ -29,15 +27,28 @@ services:
     depends_on:
       - mysql
     environment:
+      # Database Configuration
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/unimart
-      MYSQL_USER: ${MYSQL_USER:-unimartuser}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-unimartpassword}
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-studentunimart@gmail.com}
-      # Do not provide a default for password to enforce security
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      
+      # Email Configuration
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: studentunimart@gmail.com
+      SPRING_MAIL_PASSWORD: zalj giec bgro zzvc
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: smtp.gmail.com
+      SPRING_MAIL_PROPERTIES_MAIL_DEBUG: true
+      
+      # CORS Configuration
       CORS_ALLOWED_ORIGINS: http://localhost:3000
+      
+      # Stripe Configuration
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
     ports:
       - "8081:8080"
     volumes:

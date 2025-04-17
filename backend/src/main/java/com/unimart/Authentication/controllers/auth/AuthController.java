@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.unimart.Authentication.config.DataInitializer;
 import com.unimart.Authentication.dtos.auth.EmailRequest;
 import com.unimart.Authentication.dtos.auth.ProfileSetupRequest;
 import com.unimart.Authentication.dtos.auth.ProfileSetupResponse;
@@ -39,6 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthController {
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private DataInitializer dataInitializer;
 
     /**
      * Endpoint to validate email and send verification code
@@ -172,5 +176,16 @@ public class AuthController {
         boolean dbStatus = authService.databaseHealthCheck();
         Map<String, String> status = Map.of("status", dbStatus ? "UP" : "DOWN");
         return ResponseEntity.ok(status);
+    }
+
+    @PostMapping("/initialize-data")
+    public ResponseEntity<?> initializeData() {
+        try {
+            dataInitializer.initializeData();
+            return ResponseEntity.ok("Data initialization completed successfully");
+        } catch (Exception e) {
+            log.error("Error during data initialization", e);
+            return ResponseEntity.internalServerError().body("Error during data initialization: " + e.getMessage());
+        }
     }
 }

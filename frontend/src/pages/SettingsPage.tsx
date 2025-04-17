@@ -442,6 +442,7 @@ const HistoryTable = styled.table`
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid ${props => props.theme.colors.border};
+    color: #000000;
   }
   
   th {
