@@ -23,6 +23,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import BidManagementPage from './pages/BidManagementPage';
 import UserAgreementPage from './pages/UserAgreementPage';
 import PrivacyNoticePage from './pages/PrivacyNoticePage';
+import secureStore from './services/secureStorage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -42,26 +43,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App: React.FC = () => {
   useEffect(() => {
-    // Check if we have a stored email and token in localStorage (remember me)
-    const storedEmail = localStorage.getItem('email');
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedEmail && storedToken) {
-      // Check if the token is valid
-      const isValid = authService.checkRememberMeToken(storedEmail);
+    const checkAuthentication = async () => {
+      // Check if we have a stored email and token (remember me)
+      const storedEmail = localStorage.getItem('email');
       
-      if (isValid) {
-        console.log('Valid remember me token found, restoring session');
-        // Restore the session
-        sessionStorage.setItem('email', storedEmail);
-        sessionStorage.setItem('token', storedToken);
-      } else {
-        console.log('Remember me token expired or invalid, clearing localStorage');
-        // Clear localStorage if token is invalid
-        localStorage.removeItem('email');
-        localStorage.removeItem('token');
+      if (storedEmail) {
+        try {
+          // Try to get the token from secure storage
+          const storedToken = await secureStore.getItem('token');
+          
+          if (storedToken) {
+            // Check if the token is valid
+            const isValid = authService.checkRememberMeToken(storedEmail);
+            
+            if (isValid) {
+              console.log('Valid remember me token found, restoring session');
+              // Restore the session
+              sessionStorage.setItem('email', storedEmail);
+              sessionStorage.setItem('token', storedToken);
+            } else {
+              console.log('Remember me token expired or invalid, clearing storage');
+              // Clear storage if token is invalid
+              localStorage.removeItem('email');
+              secureStore.removeItem('token');
+              secureStore.removeItem('trustedDeviceToken');
+            }
+          }
+        } catch (error) {
+          console.error('Error checking authentication:', error);
+        }
       }
-    }
+    };
+    
+    checkAuthentication();
   }, []);
   
   return (

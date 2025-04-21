@@ -8,6 +8,7 @@ import {
   ProfileSetupResponse
 } from '../types/index';
 import { env } from './env';
+import secureStore from './secureStorage';
 
 // Using API URL from environment variables
 const API_URL = env.API_URL;
@@ -113,12 +114,15 @@ export const authService = {
     }
     
     try {
+      // Get the authorization token asynchronously
+      const authToken = await getAuthToken();
+      
       const response = await fetch(`${API_URL}/auth/profile-setup`, {
         method: 'POST',
         body: formData,
         // Don't set Content-Type header as it will be set automatically with correct boundary for multipart/form-data
         headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token') || ''}`
+          'Authorization': `Bearer ${authToken}`
         }
       });
       
@@ -150,7 +154,7 @@ export const authService = {
             description: profileData.description || null,
             profilePictureUrl: dataUrl,
             universityName: universityName,
-            token: localStorage.getItem('token') || "token-" + Math.random().toString(36).substring(2)
+            token: await secureStore.getItem('token') || "token-" + Math.random().toString(36).substring(2)
           };
           return response;
         } catch (fileError) {
@@ -250,6 +254,28 @@ const convertFileToDataURL = (file: File): Promise<string> => {
     };
     reader.readAsDataURL(file);
   });
+};
+
+// Helper function to get the authorization token
+export const getAuthToken = async (): Promise<string> => {
+  // First check sessionStorage for current session token
+  const sessionToken = sessionStorage.getItem('token');
+  if (sessionToken) {
+    return sessionToken;
+  }
+  
+  // Then check secure storage for remembered token
+  try {
+    const secureToken = await secureStore.getItem('token');
+    if (secureToken) {
+      return secureToken;
+    }
+  } catch (error) {
+    console.error('Error retrieving secure token:', error);
+  }
+  
+  // Return empty string if no token found
+  return '';
 };
 
 export default api; 

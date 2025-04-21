@@ -8,6 +8,7 @@ import PinInput from '../components/PinInput';
 import { authService } from '../services/api';
 import { env } from '../services/env';
 import { UserResponseDTO } from '../types';
+import secureStore from '../services/secureStorage';
 
 const Container = styled.div`
   display: flex;
@@ -192,10 +193,9 @@ const VerificationPage: React.FC = () => {
     setLoading(true);
     
     try {
-      // Call the backend API to verify the code
-      const response = await authService.verifyCode(email, code, rememberMe);
+      const response = await authService.verifyCode(email, code);
       
-      // Store user data
+      // Store in sessionStorage (temporary, per-session storage)
       sessionStorage.setItem('email', email);
       sessionStorage.setItem('username', response.username || '');
       sessionStorage.setItem('universityName', response.universityName || response.university || '');
@@ -204,11 +204,13 @@ const VerificationPage: React.FC = () => {
       // If remember me is checked, store in localStorage as well
       if (rememberMe) {
         localStorage.setItem('email', email);
-        localStorage.setItem('token', response.token);
+        
+        // Use secure storage for sensitive tokens
+        await secureStore.setItem('token', response.token);
         
         // Store trusted device token if provided
         if ((response as any).trustedDeviceToken) {
-          localStorage.setItem('trustedDeviceToken', (response as any).trustedDeviceToken);
+          await secureStore.setItem('trustedDeviceToken', (response as any).trustedDeviceToken);
         }
       }
       

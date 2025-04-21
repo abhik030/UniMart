@@ -4,6 +4,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import { motion } from 'framer-motion';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { getAuthToken } from '../services/api';
 
 // Theme from HuskyMartPage to maintain consistency
 const huskyTheme = {
@@ -562,11 +563,15 @@ const ListYourItemPage: React.FC = () => {
 
   useEffect(() => {
     // Check if user is authenticated
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    if (!token) {
-      navigate('/');
-      return;
-    }
+    const checkAuth = async () => {
+      const token = await getAuthToken();
+      if (!token) {
+        navigate('/');
+        return;
+      }
+    };
+    
+    checkAuth();
   }, [navigate]);
 
   // Reset subcategory when category changes
